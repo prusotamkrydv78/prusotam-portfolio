@@ -4,6 +4,7 @@ import '@/styles/globals.css'
 import ClientLayout from '@/components/providers/ClientLayout'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import Preloader from '@/components/layout/Preloader'
 
 /*
   Fonts:
@@ -58,6 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${clash.variable} ${cabinet.variable} ${mono.variable}`}
     >
       <body>
+        <Preloader />
         <ClientLayout>
           <Navbar />
           <main>{children}</main>

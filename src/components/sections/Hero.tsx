@@ -1,60 +1,60 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger, DUR_SLOW, EASE_OUT } from '@/lib/animations'
+import { gsap, DUR_SLOW, EASE_OUT } from '@/lib/animations'
 import { person } from '@/lib/data'
 
-gsap.registerPlugin(ScrollTrigger)
-
-/* Split "Full Stack Developer" into two parts:
-   "Full Stack" → white
-   "Developer"  → orange accent */
 const part1 = 'Full Stack'
 const part2 = 'Developer'
 
 function buildChars(str: string) {
   return str.split('').map((c, i) => (
-    <span
-      key={i}
-      style={{ overflow: 'hidden', display: 'inline-block' }}
-    >
-      <span className="char" style={{ display: 'inline-block' }}>{c === ' ' ? ' ' : c}</span>
+    <span key={i} style={{ overflow: 'hidden', display: 'inline-block' }}>
+      <span className="char" style={{ display: 'inline-block' }}>
+        {c === ' ' ? ' ' : c}
+      </span>
     </span>
   ))
 }
+
+/* Preloader calls this when strips peel away. Also called immediately on
+   subsequent session visits (sessionStorage guard in Hero's own useEffect). */
+let _revealFn: (() => void) | null = null
+export function triggerHeroReveal() { _revealFn?.() }
 
 export default function Hero() {
   const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (!ref.current) return
-    const chars   = ref.current.querySelectorAll<HTMLSpanElement>('.char')
-    const sub     = ref.current.querySelector('[data-sub]')
-    const bottom  = ref.current.querySelector('[data-bottom]')
+    const el     = ref.current
+    const chars  = el.querySelectorAll<HTMLSpanElement>('.char')
+    const sub    = el.querySelector<HTMLElement>('[data-sub]')
+    const bottom = el.querySelector<HTMLElement>('[data-bottom]')
+    const avail  = el.querySelector<HTMLElement>('[data-available]')
 
-    const ctx = gsap.context(() => {
-      gsap.from(chars, {
-        y: '110%',
-        duration: DUR_SLOW,
-        ease: EASE_OUT,
-        stagger: 0.025,
-        delay: 0.1,
-      })
-      gsap.from(sub, {
-        opacity: 0, y: 12,
-        duration: DUR_SLOW,
-        ease: EASE_OUT,
-        delay: 0.7,
-      })
-      gsap.from(bottom, {
-        opacity: 0,
-        duration: 0.6,
-        ease: EASE_OUT,
-        delay: 1.1,
-      })
-    }, ref)
+    /* Initialize all elements hidden — preloader covers during first visit */
+    gsap.set(chars, { y: '110%' })
+    if (sub)    gsap.set(sub,    { opacity: 0, y: 12 })
+    if (bottom) gsap.set(bottom, { opacity: 0 })
+    if (avail)  gsap.set(avail,  { opacity: 0 })
 
-    return () => ctx.revert()
+    const reveal = () => {
+      gsap.to(chars,  { y: '0%',   duration: DUR_SLOW, ease: EASE_OUT, stagger: 0.025 })
+      gsap.to(sub,    { opacity: 1, y: 0, duration: DUR_SLOW, ease: EASE_OUT, delay: 0.3 })
+      gsap.to(bottom, { opacity: 1, duration: 0.6,     ease: EASE_OUT, delay: 0.55 })
+      gsap.to(avail,  { opacity: 1, duration: 0.5,     ease: EASE_OUT, delay: 0.4 })
+    }
+
+    _revealFn = reveal
+
+    return () => {
+      _revealFn = null
+      chars.forEach(c => gsap.killTweensOf(c))
+      if (sub)    gsap.killTweensOf(sub)
+      if (bottom) gsap.killTweensOf(bottom)
+      if (avail)  gsap.killTweensOf(avail)
+    }
   }, [])
 
   return (
@@ -74,6 +74,7 @@ export default function Hero() {
     >
       {/* Available label — top right */}
       <div
+        data-available
         className="t-label"
         style={{
           position: 'absolute',
