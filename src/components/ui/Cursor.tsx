@@ -5,13 +5,15 @@ import { useEffect, useRef } from 'react'
 /* ─── Colours ────────────────────────────────────────────────── */
 const LIGHT = { r: 17,  g: 17,  b: 17  }   // #111111 — light sections
 const DARK  = { r: 248, g: 245, b: 240 }   // #F8F5F0 — dark sections
-const DARK_SELECTOR = '#hero, #process, #proof, #contact'
+const DARK_SELECTOR = '#hero, #process, #proof, #contact, #nav-overlay, #top-nav, #hamburger-btn'
 
 /* ─── Trail settings ─────────────────────────────────────────── */
 const MAX_PTS        = 80    // max stored trail points
 const LERP           = 0.18  // smooth-to-mouse lerp factor
 const MAX_WIDTH      = 5.0   // px at widest point of bell curve
 const IDLE_THRESHOLD = 120   // ms before retraction begins
+const DOT_LERP       = 0.38  // dot ball follows mouse faster than trail
+const DOT_R          = 5     // dot ball radius px
 
 /* ─── Types ──────────────────────────────────────────────────── */
 interface Pt { x: number; y: number }
@@ -23,6 +25,7 @@ interface HlState {
   opacity:    number              // 1 → 0: fade-out
   phase:      'drawing' | 'holding' | 'erasing'
   holdFrames: number
+  color:      string              // stroke color for this ellipse
 }
 
 /* ─── Component ───────────────────────────────────────────────── */
@@ -55,17 +58,19 @@ export default function Cursor() {
 
     /* ── Mutable state (inside closure — no React re-renders) ── */
     const mouse  = { x: -1, y: -1 }   // raw mouse; -1 = not yet received
-    const smooth = { x: -1, y: -1 }   // lerped position
+    const smooth = { x: -1, y: -1 }   // lerped position (trail)
+    const dot    = { x: -1, y: -1 }   // fast-lerp position (dot ball)
     const pts: Pt[] = []               // trail points
     const col = { ...LIGHT }           // current stroke colour (float RGB)
     let isDark       = false
     let lastMoveTime = Date.now()
     let raf          = 0
     let hl: HlState | null = null      // active highlight ellipse
+    let activeHlEl: Element | null = null  // element currently being highlighted
 
     /* ── Mouse tracking ── */
     const onMove = (e: MouseEvent) => {
-      if (mouse.x === -1) { smooth.x = e.clientX; smooth.y = e.clientY }
+      if (mouse.x === -1) { smooth.x = e.clientX; smooth.y = e.clientY; dot.x = e.clientX; dot.y = e.clientY }
       mouse.x = e.clientX
       mouse.y = e.clientY
       lastMoveTime = Date.now()
@@ -78,7 +83,9 @@ export default function Cursor() {
     /* ── Highlight element listeners ── */
     const attachHighlight = (el: Element) => {
       el.addEventListener('mouseenter', () => {
+        activeHlEl = el
         const r = el.getBoundingClientRect()
+        const colorAttr = (el as HTMLElement).dataset?.cursorColor
         hl = {
           cx: r.left + r.width  / 2,
           cy: r.top  + r.height / 2,
@@ -88,9 +95,11 @@ export default function Cursor() {
           opacity:    1,
           phase:      'drawing',
           holdFrames: 0,
+          color:      colorAttr ?? '#C8EF4A',
         }
       })
       el.addEventListener('mouseleave', () => {
+        activeHlEl = null
         if (hl) hl.phase = 'erasing'
       })
     }
@@ -131,17 +140,21 @@ export default function Cursor() {
         if (pts.length > 0) pts.splice(0, 1)
       }
 
-      /* ── Step 2: Lerp stroke colour ── */
+      /* ── Step 2: Update dot position (always, even on idle) ── */
+      dot.x += (mouse.x - dot.x) * DOT_LERP
+      dot.y += (mouse.y - dot.y) * DOT_LERP
+
+      /* ── Step 4: Lerp stroke colour ── */
       const target = isDark ? DARK : LIGHT
       col.r += (target.r - col.r) * 0.05
       col.g += (target.g - col.g) * 0.05
       col.b += (target.b - col.b) * 0.05
       const stroke = `rgb(${Math.round(col.r)},${Math.round(col.g)},${Math.round(col.b)})`
 
-      /* ── Step 3: Clear canvas ── */
+      /* ── Step 5: Clear canvas ── */
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-      /* ── Step 4: Draw calligraphy trail (bell-curve width) ── */
+      /* ── Step 6: Draw calligraphy trail (bell-curve width) ── */
       if (pts.length >= 3) {
         ctx.lineCap     = 'round'
         ctx.lineJoin    = 'round'
@@ -169,7 +182,20 @@ export default function Cursor() {
         ctx.globalAlpha = 1  // always reset so it doesn't leak
       }
 
-      /* ── Step 5: Draw highlight ellipse ── */
+      /* ── Step 7: Live-update highlight bounds (handles dynamic element resize) ── */
+      if (activeHlEl && hl && hl.phase !== 'erasing') {
+        const r = activeHlEl.getBoundingClientRect()
+        const tcx = r.left + r.width  / 2
+        const tcy = r.top  + r.height / 2
+        const trx = r.width  / 2 + 10
+        const try_ = r.height / 2 + 8
+        hl.cx += (tcx - hl.cx) * 0.12
+        hl.cy += (tcy - hl.cy) * 0.12
+        hl.rx += (trx - hl.rx) * 0.12
+        hl.ry += (try_ - hl.ry) * 0.12
+      }
+
+      /* ── Step 8: Draw highlight ellipse ── */
       if (hl !== null) {
         ctx.save()
         ctx.beginPath()
@@ -188,7 +214,7 @@ export default function Cursor() {
           i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
         }
 
-        ctx.strokeStyle = stroke
+        ctx.strokeStyle = hl.color
         ctx.lineWidth   = 1.8
         ctx.lineCap     = 'round'
         ctx.globalAlpha = hl.opacity * 0.7
@@ -211,6 +237,15 @@ export default function Cursor() {
           if (hl.opacity <= 0) hl = null
         }
       }
+
+      /* ── Step 9: Draw dot ball ── */
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(dot.x, dot.y, DOT_R, 0, Math.PI * 2)
+      ctx.fillStyle = stroke
+      ctx.globalAlpha = 0.92
+      ctx.fill()
+      ctx.restore()
 
       raf = requestAnimationFrame(tick)
     }
