@@ -1,122 +1,162 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import dynamic from 'next/dynamic'
+import { gsap, ScrollTrigger, DUR_SLOW, EASE_OUT } from '@/lib/animations'
+import { person } from '@/lib/data'
 
-const ParticleGrid = dynamic(() => import('@/components/canvas/ParticleGrid'), { ssr: false })
+gsap.registerPlugin(ScrollTrigger)
 
-const nameLines = [
-  { text: 'PRUSOTAM', delay: 0,    accent: false },
-  { text: 'KUMAR',    delay: 0.22, accent: false },
-  { text: 'YADAV.',   delay: 0.44, accent: true  },
-]
+/* Split "Full Stack Developer" into two parts:
+   "Full Stack" → white
+   "Developer"  → orange accent */
+const part1 = 'Full Stack'
+const part2 = 'Developer'
+
+function buildChars(str: string) {
+  return str.split('').map((c, i) => (
+    <span
+      key={i}
+      style={{ overflow: 'hidden', display: 'inline-block' }}
+    >
+      <span className="char" style={{ display: 'inline-block' }}>{c === ' ' ? ' ' : c}</span>
+    </span>
+  ))
+}
 
 export default function Hero() {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
-
-    const letterGroups = containerRef.current.querySelectorAll<HTMLSpanElement>('[data-letters]')
-    const bar   = containerRef.current.querySelector('[data-bar]')
-    const badge = containerRef.current.querySelector('[data-badge]')
+    if (!ref.current) return
+    const chars   = ref.current.querySelectorAll<HTMLSpanElement>('.char')
+    const sub     = ref.current.querySelector('[data-sub]')
+    const bottom  = ref.current.querySelector('[data-bottom]')
 
     const ctx = gsap.context(() => {
-      letterGroups.forEach((group) => {
-        const delay = parseFloat(group.getAttribute('data-delay') ?? '0')
-        const letters = group.querySelectorAll<HTMLSpanElement>('.letter')
-        gsap.fromTo(
-          letters,
-          { y: '110%', rotation: 3, opacity: 0 },
-          {
-            y: '0%', rotation: 0, opacity: 1,
-            duration: 0.9, ease: 'expo.out', stagger: 0.04, delay,
-          }
-        )
+      gsap.from(chars, {
+        y: '110%',
+        duration: DUR_SLOW,
+        ease: EASE_OUT,
+        stagger: 0.025,
+        delay: 0.1,
       })
-
-      gsap.fromTo(bar,   { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', delay: 0.9 })
-      gsap.fromTo(badge, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', delay: 1.1 })
-    }, containerRef)
+      gsap.from(sub, {
+        opacity: 0, y: 12,
+        duration: DUR_SLOW,
+        ease: EASE_OUT,
+        delay: 0.7,
+      })
+      gsap.from(bottom, {
+        opacity: 0,
+        duration: 0.6,
+        ease: EASE_OUT,
+        delay: 1.1,
+      })
+    }, ref)
 
     return () => ctx.revert()
   }, [])
 
   return (
     <section
-      ref={containerRef}
+      ref={ref}
       id="hero"
-      className="relative overflow-hidden"
-      style={{ background: 'var(--bg-invert)', height: '100svh' }}
+      style={{
+        background: 'var(--black)',
+        minHeight: '100svh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        padding: '120px var(--gutter) 64px',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
     >
-      <ParticleGrid />
-
-      {/* Availability badge */}
+      {/* Available label — top right */}
       <div
-        data-badge
-        style={{ opacity: 0 }}
-        className="absolute top-16 right-[var(--gutter)] flex items-center gap-2.5
-                   font-[family-name:var(--font-dm-mono)]
-                   uppercase tracking-[0.18em] text-[var(--accent)]"
+        className="t-label"
+        style={{
+          position: 'absolute',
+          top: 80,
+          right: 'var(--gutter)',
+          color: 'var(--accent)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
         <span
           style={{
-            width: 6, height: 6, borderRadius: '50%',
+            width: 6, height: 6,
+            borderRadius: '50%',
             background: 'var(--accent)',
             display: 'inline-block',
-            boxShadow: '0 0 6px var(--accent)',
+            boxShadow: '0 0 8px var(--accent)',
             animation: 'pulse 2s ease-in-out infinite',
           }}
         />
-        <span style={{ fontSize: '12px' }}>OPEN TO WORK</span>
+        Available for work
       </div>
 
-      {/* Name block */}
-      <div className="absolute bottom-20 left-[var(--gutter)]">
-        {nameLines.map(({ text, delay, accent }) => (
-          <div
-            key={text}
-            data-letters
-            data-delay={String(delay)}
-            style={{ overflow: 'hidden', lineHeight: 0.92 }}
-          >
-            {text.split('').map((char, i) => (
-              <span
-                key={i}
-                className="letter"
-                style={{
-                  display: 'inline-block',
-                  fontSize: 'var(--type-display)',
-                  fontFamily: 'var(--font-syne), sans-serif',
-                  fontWeight: 800,
-                  letterSpacing: '-0.03em',
-                  color: accent && char === '.' ? 'var(--accent)' : 'var(--ink-invert)',
-                }}
-              >
-                {char}
-              </span>
-            ))}
-          </div>
-        ))}
+      {/* Headline */}
+      <div style={{ maxWidth: '1100px' }}>
+        <div
+          className="t-display"
+          style={{ display: 'block', color: 'var(--text-inverse)', marginBottom: '0.05em' }}
+          aria-label="Full Stack Developer"
+        >
+          {buildChars(part1)}
+        </div>
+        <div
+          className="t-display"
+          style={{ display: 'block', color: 'var(--accent)' }}
+        >
+          {buildChars(part2)}
+        </div>
       </div>
 
-      {/* Bottom info bar */}
-      <div
-        data-bar
+      {/* Subtitle */}
+      <p
+        data-sub
+        className="t-body"
         style={{
-          opacity: 0,
-          borderTop: '1px solid rgba(245,242,238,0.08)',
+          color: 'var(--text-secondary)',
+          marginTop: 28,
+          maxWidth: 560,
         }}
-        className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-between px-[var(--gutter)]
-                   font-[family-name:var(--font-dm-mono)]
-                   text-[var(--type-micro)] uppercase tracking-[0.2em]"
       >
-        <span style={{ color: 'rgba(184,176,168,0.7)' }}>Full Stack Developer</span>
-        <span className="hidden sm:block" style={{ color: 'rgba(184,176,168,0.5)' }}>
-          React · TypeScript · Node.js · ASP.NET
+        {person.stack.join(' · ')}
+      </p>
+
+      {/* Bottom row */}
+      <div
+        data-bottom
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '20px var(--gutter)',
+          borderTop: '1px solid var(--line-dark)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span className="t-label" style={{ color: 'var(--text-secondary)' }}>
+          ↓ scroll
         </span>
-        <span style={{ color: 'rgba(184,176,168,0.7)' }}>↓ Scroll</span>
+        <span className="t-label" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span
+            style={{
+              width: 5, height: 5,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              display: 'inline-block',
+            }}
+          />
+          Open to work
+        </span>
       </div>
     </section>
   )

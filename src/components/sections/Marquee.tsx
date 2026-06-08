@@ -1,83 +1,36 @@
 import { skills } from '@/lib/data'
 
-const ticker = [
-  ...skills,
-  ...skills, // doubled so the seamless loop math works
-]
+/* Duplicate so the seamless loop works */
+const ticker = [...skills, ...skills]
 
-export default function Marquee() {
+export default function Ticker() {
   return (
-    <div style={{ background: 'var(--accent)', overflow: 'hidden' }}>
-      {/* Row 1 — left */}
-      <div className="flex overflow-hidden">
-        <div className="animate-marquee-left flex shrink-0 whitespace-nowrap">
-          {ticker.map((s, i) => (
-            <span
-              key={`a-${i}`}
-              className="font-[family-name:var(--font-dm-mono)] uppercase tracking-[0.2em]"
-              style={{
-                fontSize: 'var(--type-small)',
-                color: 'var(--bg-invert)',
-                padding: '0 1.5rem',
-                lineHeight: '56px',
-              }}
-            >
-              {s} ·
-            </span>
-          ))}
-        </div>
-        <div className="animate-marquee-left flex shrink-0 whitespace-nowrap" aria-hidden>
-          {ticker.map((s, i) => (
-            <span
-              key={`b-${i}`}
-              className="font-[family-name:var(--font-dm-mono)] uppercase tracking-[0.2em]"
-              style={{
-                fontSize: 'var(--type-small)',
-                color: 'var(--bg-invert)',
-                padding: '0 1.5rem',
-                lineHeight: '56px',
-              }}
-            >
-              {s} ·
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Row 2 — right */}
-      <div className="flex overflow-hidden">
-        <div className="animate-marquee-right flex shrink-0 whitespace-nowrap">
-          {[...ticker].reverse().map((s, i) => (
-            <span
-              key={`c-${i}`}
-              className="font-[family-name:var(--font-dm-mono)] uppercase tracking-[0.2em]"
-              style={{
-                fontSize: 'var(--type-small)',
-                color: 'var(--bg-invert)',
-                padding: '0 1.5rem',
-                lineHeight: '56px',
-              }}
-            >
-              {s} ·
-            </span>
-          ))}
-        </div>
-        <div className="animate-marquee-right flex shrink-0 whitespace-nowrap" aria-hidden>
-          {[...ticker].reverse().map((s, i) => (
-            <span
-              key={`d-${i}`}
-              className="font-[family-name:var(--font-dm-mono)] uppercase tracking-[0.2em]"
-              style={{
-                fontSize: 'var(--type-small)',
-                color: 'var(--bg-invert)',
-                padding: '0 1.5rem',
-                lineHeight: '56px',
-              }}
-            >
-              {s} ·
-            </span>
-          ))}
-        </div>
+    <div
+      style={{
+        background: 'var(--accent)',
+        height: 52,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <div
+        className="animate-ticker"
+        style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+      >
+        {ticker.map((s, i) => (
+          <span
+            key={i}
+            className="t-label"
+            style={{
+              color: 'var(--black)',
+              letterSpacing: '0.12em',
+              padding: '0 20px',
+            }}
+          >
+            {s} /
+          </span>
+        ))}
       </div>
     </div>
   )

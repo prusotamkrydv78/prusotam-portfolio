@@ -1,16 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import MagneticEl from '@/components/ui/MagneticEl'
-import { meta } from '@/lib/data'
+import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
+import { person } from '@/lib/data'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export default function Contact() {
-  const sectionRef  = useRef<HTMLElement>(null)
-  const [copied, setCopied] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const [copied, setCopied]   = useState(false)
 
   useEffect(() => {
     if (!sectionRef.current) return
@@ -21,20 +19,20 @@ export default function Contact() {
       lines.forEach((line, i) => {
         gsap.fromTo(
           line,
-          { y: '105%', opacity: 0 },
+          { y: '105%' },
           {
-            y: '0%', opacity: 1,
-            duration: 0.9, ease: 'expo.out', delay: i * 0.1,
+            y: '0%',
+            duration: DUR_MID, ease: EASE_OUT, delay: i * 0.08,
             scrollTrigger: { trigger: sectionRef.current, start: 'top 75%', once: true },
           }
         )
       })
       gsap.fromTo(
         extras,
-        { opacity: 0, y: 16 },
+        { opacity: 0, y: 20 },
         {
           opacity: 1, y: 0,
-          duration: 0.6, ease: 'expo.out', stagger: 0.08, delay: 0.4,
+          duration: DUR_MID, ease: EASE_OUT, stagger: 0.08, delay: 0.35,
           scrollTrigger: { trigger: sectionRef.current, start: 'top 75%', once: true },
         }
       )
@@ -44,7 +42,7 @@ export default function Contact() {
   }, [])
 
   const copyEmail = () => {
-    navigator.clipboard.writeText(meta.email)
+    navigator.clipboard.writeText(person.email)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -53,127 +51,94 @@ export default function Contact() {
     <section
       ref={sectionRef}
       id="contact"
-      className="relative grid-overlay"
+      className="contact-grid-bg"
       style={{
-        background: 'var(--bg-invert)',
-        minHeight: '100svh',
+        minHeight: '90vh',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
         justifyContent: 'center',
-        paddingTop: 'var(--section-gap)',
-        paddingBottom: 'var(--section-gap)',
-        paddingLeft: 'var(--gutter)',
-        paddingRight: 'var(--gutter)',
-        textAlign: 'center',
+        padding: 'var(--section-v) var(--gutter)',
+        position: 'relative',
       }}
     >
       {/* Label */}
       <p
-        style={{
-          fontFamily: 'var(--font-dm-mono), monospace',
-          fontSize: 'var(--type-micro)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.2em',
-          color: 'var(--ink-muted)',
-          marginBottom: '2rem',
-        }}
+        data-extra
+        className="t-label section-label"
+        style={{ color: 'var(--accent)', marginBottom: 32 }}
       >
-        LET&apos;S BUILD /
+        GET IN TOUCH
       </p>
 
       {/* Headline */}
-      <div className="mb-14">
-        <div style={{ overflow: 'hidden' }}>
-          <span
-            data-line
-            style={{
-              display: 'block',
-              fontFamily: 'var(--font-syne), sans-serif',
-              fontWeight: 800,
-              fontSize: 'var(--type-display)',
-              letterSpacing: '-0.03em',
-              color: 'var(--ink-invert)',
-              lineHeight: 0.92,
-            }}
-          >
-            Have an idea?
-          </span>
-        </div>
-        <div style={{ overflow: 'hidden' }}>
-          <span
-            data-line
-            style={{
-              display: 'block',
-              fontFamily: 'var(--font-syne), sans-serif',
-              fontWeight: 800,
-              fontSize: 'var(--type-display)',
-              letterSpacing: '-0.03em',
-              color: 'var(--accent)',
-              lineHeight: 0.92,
-            }}
-          >
-            Let&apos;s make it.
-          </span>
-        </div>
+      <div style={{ marginBottom: 48 }}>
+        {['Open to', 'opportunities.'].map((line, i) => (
+          <div key={i} style={{ overflow: 'hidden' }}>
+            <span
+              data-line
+              className="t-title"
+              style={{ display: 'block', color: 'var(--text-inverse)', lineHeight: 1.05 }}
+            >
+              {line}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Email */}
-      <MagneticEl>
+      {/* Links */}
+      <div data-extra style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 48 }}>
         <button
-          data-extra
           onClick={copyEmail}
+          className="t-lead underline-sweep"
           style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'none',
-            fontFamily: 'var(--font-dm-mono), monospace',
-            fontSize: 'clamp(14px, 1.8vw, 20px)',
-            color: copied ? 'var(--accent)' : 'var(--ink-invert)',
-            marginBottom: '1rem',
-            display: 'block',
+            background: 'none', border: 'none',
+            color: copied ? 'var(--text-inverse)' : 'var(--text-secondary)',
+            cursor: 'none', textAlign: 'left',
             transition: 'color 0.3s',
+            fontWeight: 500,
+            padding: 0,
           }}
-          className="underline-sweep"
+          data-cursor-copy
         >
-          {copied ? 'COPIED ✓' : meta.email}
+          ↗ {copied ? 'Copied!' : person.email}
         </button>
-      </MagneticEl>
 
-      {/* GitHub */}
-      <MagneticEl>
         <a
-          data-extra
-          href={meta.github}
+          href={person.githubUrl}
           target="_blank"
           rel="noopener noreferrer"
+          className="t-lead underline-sweep"
           style={{
-            fontFamily: 'var(--font-dm-mono), monospace',
-            fontSize: 'clamp(14px, 1.8vw, 20px)',
-            color: 'var(--ink-invert)',
+            color: 'var(--text-secondary)',
             textDecoration: 'none',
-            display: 'block',
+            fontWeight: 500,
           }}
-          className="underline-sweep"
+          data-cursor-copy
         >
-          github.com/prusotamkrydv78
+          ↗ {person.github}
         </a>
-      </MagneticEl>
+      </div>
 
-      {/* Availability */}
-      <p
-        data-extra
+      {/* Bottom row */}
+      <div
         style={{
-          fontFamily: 'var(--font-dm-mono), monospace',
-          fontSize: 'var(--type-micro)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.2em',
-          color: 'var(--ink-muted)',
-          marginTop: '3rem',
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '20px var(--gutter)',
+          borderTop: '1px solid var(--line-dark)',
+          display: 'flex',
+          justifyContent: 'space-between',
         }}
       >
-        CURRENTLY OPEN FOR FREELANCE AND FULL-TIME ROLES
-      </p>
+        <span className="t-label" style={{ color: 'var(--text-secondary)' }}>
+          Available for freelance and full-time roles
+        </span>
+        <span className="t-label" style={{ color: 'var(--text-secondary)' }}>
+          {person.location} — 2026
+        </span>
+      </div>
     </section>
   )
 }

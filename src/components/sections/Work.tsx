@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
 import ProjectRow from '@/components/ui/HoverProject'
 import { projects } from '@/lib/data'
 
@@ -17,12 +16,10 @@ export default function Work() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         rows,
-        { opacity: 0, x: -24 },
+        { opacity: 0, y: 24 },
         {
-          opacity: 1, x: 0,
-          duration: 0.8,
-          ease: 'expo.out',
-          stagger: 0.08,
+          opacity: 1, y: 0,
+          duration: 0.8, ease: EASE_OUT, stagger: 0.06,
           scrollTrigger: {
             trigger: sectionRef.current,
             start: 'top 80%',
@@ -38,78 +35,59 @@ export default function Work() {
     <section
       ref={sectionRef}
       id="work"
-      style={{ background: 'var(--bg-canvas)', paddingTop: 'var(--section-gap)', paddingBottom: 'var(--section-gap)' }}
+      style={{
+        background: 'var(--white)',
+        paddingTop: 'var(--section-v)',
+        paddingBottom: 'var(--section-v)',
+      }}
     >
       {/* Header */}
-      <div className="container mb-16">
-        <p
-          style={{
-            fontFamily: 'var(--font-dm-mono), monospace',
-            fontSize: 'var(--type-micro)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'var(--ink-muted)',
-            marginBottom: '0.5rem',
-          }}
-        >
-          PROJECTS /
+      <div className="container" style={{ marginBottom: 64 }}>
+        <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
+          WORK
         </p>
-        <div className="flex items-end justify-between">
-          <div>
-            <p
-              style={{
-                fontFamily: 'var(--font-syne), sans-serif',
-                fontWeight: 800,
-                fontSize: 'var(--type-title)',
-                letterSpacing: '-0.03em',
-                color: 'var(--ink-primary)',
-                lineHeight: 1,
-              }}
-            >
-              SELECTED
-            </p>
-            <p
-              style={{
-                fontFamily: 'var(--font-syne), sans-serif',
-                fontWeight: 800,
-                fontSize: 'var(--type-title)',
-                letterSpacing: '-0.03em',
-                color: 'var(--ink-primary)',
-                lineHeight: 1,
-              }}
-            >
-              WORK
-            </p>
-          </div>
-          <span
-            style={{
-              fontFamily: 'var(--font-dm-mono), monospace',
-              fontSize: 'clamp(24px, 3vw, 48px)',
-              color: 'var(--ink-muted)',
-              lineHeight: 1,
-            }}
-          >
-            ({String(projects.length).padStart(2, '0')})
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <h2 className="t-title" style={{ color: 'var(--text-primary)' }}>
+            Selected<br />Work
+          </h2>
+          <span className="t-label" style={{ color: 'var(--text-secondary)' }}>
+            {String(projects.length).padStart(2, '0')} projects
           </span>
         </div>
       </div>
 
-      {/* Project rows */}
+      {/* Section rule */}
+      <div className="container"><div className="section-rule" /></div>
+
+      {/* Rows */}
       <div>
-        {projects.map((project, index) => (
-          <div key={project.id} data-row>
+        {projects.map((p, i) => (
+          <div key={p.index} data-row>
             <ProjectRow
-              id={project.id}
-              title={project.title}
-              year={project.year}
-              tags={project.tags}
-              visual={project.visual}
-              github={project.github}
-              live={project.live}
-              isLast={index === projects.length - 1}
+              index={p.index}
+              title={p.title}
+              year={p.year}
+              tags={p.tags}
+              panel={p.panel}
+              github={p.github}
+              live={p.live}
+              isLast={i === projects.length - 1}
             />
           </div>
         ))}
+      </div>
+
+      {/* View all */}
+      <div className="container" style={{ marginTop: 48 }}>
+        <a
+          href="https://github.com/prusotamkrydv78"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="t-meta underline-sweep"
+          style={{ color: 'var(--text-primary)', textDecoration: 'none' }}
+        >
+          → View all projects on GitHub
+        </a>
       </div>
     </section>
   )

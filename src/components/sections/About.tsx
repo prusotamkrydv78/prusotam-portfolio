@@ -1,32 +1,19 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { meta, stats } from '@/lib/data'
+import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
+import { person, projects, stats } from '@/lib/data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const techTags = [
-  { label: 'React.js',     x: '5%',  y: '8%',  rot: -2 },
-  { label: 'TypeScript',   x: '36%', y: '2%',  rot:  1 },
-  { label: 'Node.js',      x: '66%', y: '10%', rot: -3 },
-  { label: 'ASP.NET Core', x: '8%',  y: '36%', rot:  2 },
-  { label: 'React Native', x: '46%', y: '30%', rot: -1 },
-  { label: 'MongoDB',      x: '70%', y: '40%', rot:  3 },
-  { label: 'Socket.IO',    x: '16%', y: '60%', rot: -2 },
-  { label: 'GSAP',         x: '50%', y: '56%', rot:  1 },
-  { label: 'Three.js',     x: '76%', y: '62%', rot: -3 },
-  { label: 'Tailwind CSS', x: '2%',  y: '80%', rot:  2 },
-  { label: 'Next.js',      x: '40%', y: '78%', rot: -1 },
-  { label: 'C#',           x: '72%', y: '82%', rot:  3 },
+const bioLines = [
+  'A developer',
+  'who builds',
+  'things that',
+  'actually work.',
 ]
 
-const bioLines = [
-  'I write code.',
-  'I design systems.',
-  'I obsess over the gap between the two.',
-]
+const currentlyBuilding = projects.map((p) => p.title)
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -34,7 +21,7 @@ export default function About() {
 
   useEffect(() => {
     if (!sectionRef.current) return
-    const lines = sectionRef.current.querySelectorAll<HTMLSpanElement>('[data-line]')
+    const lines = sectionRef.current.querySelectorAll('[data-line]')
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -42,7 +29,7 @@ export default function About() {
         { y: '105%', opacity: 0 },
         {
           y: '0%', opacity: 1,
-          duration: 0.9, ease: 'expo.out', stagger: 0.12,
+          duration: DUR_MID, ease: EASE_OUT, stagger: 0.12,
           scrollTrigger: { trigger: sectionRef.current, start: 'top 75%', once: true },
         }
       )
@@ -53,8 +40,7 @@ export default function About() {
         const obj = { val: 0 }
         gsap.to(obj, {
           val: s.value,
-          duration: 1.4,
-          ease: 'power2.out',
+          duration: 1.4, ease: 'power2.out',
           onUpdate() { el.textContent = Math.round(obj.val) + s.suffix },
           scrollTrigger: { trigger: el, start: 'top 88%', once: true },
         })
@@ -69,42 +55,27 @@ export default function About() {
       ref={sectionRef}
       id="about"
       style={{
-        background: 'var(--bg-canvas)',
-        paddingTop: 'var(--section-gap)',
-        paddingBottom: 'var(--section-gap)',
+        background: 'var(--surface-1)',
+        paddingTop: 'var(--section-v)',
+        paddingBottom: 'var(--section-v)',
       }}
     >
       <div className="container">
-        <p
-          className="mb-12"
-          style={{
-            fontFamily: 'var(--font-dm-mono), monospace',
-            fontSize: 'var(--type-micro)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'var(--ink-muted)',
-          }}
-        >
-          A / ABOUT
+        <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 48 }}>
+          ABOUT
         </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[45fr_55fr] gap-16 lg:gap-24 items-start">
-          {/* Left — bio */}
-          <div>
-            <div className="mb-10">
+        <div className="grid-12" style={{ alignItems: 'start' }}>
+          {/* Left — col 1-5 */}
+          <div style={{ gridColumn: '1 / 6' }}>
+            {/* Bio */}
+            <div style={{ marginBottom: 32 }}>
               {bioLines.map((line, i) => (
-                <div key={i} style={{ overflow: 'hidden', marginBottom: '0.1em' }}>
+                <div key={i} style={{ overflow: 'hidden' }}>
                   <span
                     data-line
-                    style={{
-                      display: 'block',
-                      fontFamily: 'var(--font-syne), sans-serif',
-                      fontWeight: 800,
-                      fontSize: 'clamp(22px, 3.5vw, 44px)',
-                      letterSpacing: '-0.02em',
-                      color: 'var(--ink-primary)',
-                      lineHeight: 1.1,
-                    }}
+                    className="t-title"
+                    style={{ display: 'block', color: 'var(--text-primary)', lineHeight: 1.05 }}
                   >
                     {line}
                   </span>
@@ -112,123 +83,94 @@ export default function About() {
               ))}
             </div>
 
-            <p
-              style={{
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                fontSize: 'var(--type-body)',
-                lineHeight: 1.7,
-                color: 'var(--ink-secondary)',
-                maxWidth: '360px',
-                marginBottom: '2rem',
-              }}
-            >
-              Full Stack Developer based in {meta.location}.<br />
-              Building since 2023: React, TypeScript, Node.js, ASP.NET Core, React Native, MongoDB.
+            <p className="t-body" style={{ color: 'var(--text-secondary)', marginBottom: 32, maxWidth: 360 }}>
+              Full Stack Developer based in {person.location}.<br />
+              Building since 2023.
             </p>
 
-            <div className="flex gap-6">
+            <div style={{ display: 'flex', gap: 24 }}>
               <a
-                href={meta.github}
+                href={person.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline-sweep"
-                style={{
-                  fontFamily: 'var(--font-dm-mono), monospace',
-                  fontSize: 'var(--type-small)',
-                  color: 'var(--ink-primary)',
-                  textDecoration: 'none',
-                }}
+                className="t-meta underline-sweep"
+                style={{ color: 'var(--text-primary)', textDecoration: 'none' }}
               >
-                GitHub ↗
+                ↗ GitHub
               </a>
               <a
-                href={`mailto:${meta.email}`}
-                className="underline-sweep"
-                style={{
-                  fontFamily: 'var(--font-dm-mono), monospace',
-                  fontSize: 'var(--type-small)',
-                  color: 'var(--ink-primary)',
-                  textDecoration: 'none',
-                }}
+                href={`mailto:${person.email}`}
+                className="t-meta underline-sweep"
+                style={{ color: 'var(--text-primary)', textDecoration: 'none' }}
+                data-cursor-copy
               >
-                Email ↗
+                ↗ Email
               </a>
             </div>
           </div>
 
-          {/* Right — stats + tags */}
-          <div className="flex flex-col gap-12">
-            {/* 2×2 stats grid */}
-            <div className="grid grid-cols-2 gap-3">
+          {/* Right — col 7-12 */}
+          <div style={{ gridColumn: '7 / 13' }}>
+            {/* 2×2 stat grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                border: '1px solid var(--line)',
+                marginBottom: 40,
+              }}
+            >
               {stats.map((s, i) => (
                 <div
                   key={s.label}
                   style={{
-                    background: 'var(--bg-surface)',
-                    borderRadius: '2px',
-                    padding: '20px 24px',
+                    background: 'var(--white)',
+                    padding: '24px 28px',
+                    borderRight: i % 2 === 0 ? '1px solid var(--line)' : 'none',
+                    borderBottom: i < 2 ? '1px solid var(--line)' : 'none',
                   }}
                 >
                   <span
                     ref={(el) => { statRefs.current[i] = el }}
                     style={{
-                      fontFamily: 'var(--font-syne), sans-serif',
-                      fontWeight: 800,
-                      fontSize: 'clamp(28px, 4vw, 48px)',
-                      color: 'var(--ink-primary)',
+                      fontFamily: 'var(--font-clash), Syne, sans-serif',
+                      fontWeight: 700,
+                      fontSize: 48,
+                      color: 'var(--text-primary)',
                       display: 'block',
                       lineHeight: 1,
                     }}
                   >
                     0{s.suffix}
                   </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-dm-mono), monospace',
-                      fontSize: 'var(--type-micro)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.15em',
-                      color: 'var(--ink-muted)',
-                      marginTop: '8px',
-                      display: 'block',
-                    }}
-                  >
+                  <span className="t-label" style={{ color: 'var(--text-secondary)', marginTop: 8, display: 'block' }}>
                     {s.label}
                   </span>
                 </div>
               ))}
             </div>
 
-            {/* Tech tag cluster */}
-            <div style={{ position: 'relative', height: '220px' }}>
-              {techTags.map((tag) => (
+            {/* Currently building */}
+            <p className="t-label" style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>
+              Currently building:
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {currentlyBuilding.map((name) => (
                 <span
-                  key={tag.label}
+                  key={name}
+                  className="t-label"
                   style={{
-                    position: 'absolute',
-                    left: tag.x,
-                    top: tag.y,
-                    transform: `rotate(${tag.rot}deg)`,
-                    fontFamily: 'var(--font-dm-mono), monospace',
-                    fontSize: 'var(--type-micro)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    background: 'var(--bg-invert)',
-                    color: 'var(--accent)',
-                    padding: '5px 10px',
-                    borderRadius: '2px',
-                    whiteSpace: 'nowrap',
+                    background: 'var(--black)',
+                    color: 'var(--text-inverse)',
+                    padding: '6px 12px',
+                    borderRadius: 2,
                     cursor: 'default',
-                    transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transition: 'background 0.25s ease',
                   }}
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.transform = 'rotate(0deg) scale(1.05)'
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.transform = `rotate(${tag.rot}deg)`
-                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--accent)' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--black)' }}
                 >
-                  {tag.label}
+                  {name}
                 </span>
               ))}
             </div>
