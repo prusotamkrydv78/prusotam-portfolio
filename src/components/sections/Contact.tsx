@@ -99,6 +99,7 @@ export default function Contact() {
             padding: 0,
           }}
           data-cursor-copy
+          data-cursor="highlight"
         >
           ↗ {copied ? 'Copied!' : person.email}
         </button>
@@ -114,6 +115,7 @@ export default function Contact() {
             fontWeight: 500,
           }}
           data-cursor-copy
+          data-cursor="highlight"
         >
           ↗ {person.github}
         </a>
@@ -124,6 +126,7 @@ export default function Contact() {
           target="_blank"
           rel="noopener noreferrer"
           className="underline-sweep"
+          data-cursor="highlight"
           style={{
             fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
             fontSize: 12,

@@ -18,6 +18,7 @@ export default function LenisProvider({ children }: { children: React.ReactNode 
     })
 
     lenisRef.current = lenis
+    ;(window as any).lenis = lenis   // expose for other components
 
     lenis.on('scroll', ScrollTrigger.update)
 
