@@ -3,180 +3,120 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import dynamic from 'next/dynamic'
-import { person } from '@/lib/data'
-import MagneticButton from '@/components/ui/MagneticButton'
 
-const Scene = dynamic(() => import('@/components/canvas/Scene'), { ssr: false })
+const ParticleGrid = dynamic(() => import('@/components/canvas/ParticleGrid'), { ssr: false })
+
+const nameLines = [
+  { text: 'PRUSOTAM', delay: 0,    accent: false },
+  { text: 'KUMAR',    delay: 0.22, accent: false },
+  { text: 'YADAV.',   delay: 0.44, accent: true  },
+]
 
 export default function Hero() {
-  const headlineRef = useRef<HTMLDivElement>(null)
-  const subRef = useRef<HTMLParagraphElement>(null)
-  const ctaRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
+    if (!containerRef.current) return
 
-    const words = headlineRef.current?.querySelectorAll('.word')
-    if (!words) return
+    const letterGroups = containerRef.current.querySelectorAll<HTMLSpanElement>('[data-letters]')
+    const bar   = containerRef.current.querySelector('[data-bar]')
+    const badge = containerRef.current.querySelector('[data-badge]')
 
-    gsap.set(words, { y: '100%', opacity: 0 })
-    gsap.set([subRef.current, ctaRef.current, scrollRef.current], { opacity: 0, y: 20 })
+    const ctx = gsap.context(() => {
+      letterGroups.forEach((group) => {
+        const delay = parseFloat(group.getAttribute('data-delay') ?? '0')
+        const letters = group.querySelectorAll<HTMLSpanElement>('.letter')
+        gsap.fromTo(
+          letters,
+          { y: '110%', rotation: 3, opacity: 0 },
+          {
+            y: '0%', rotation: 0, opacity: 1,
+            duration: 0.9, ease: 'expo.out', stagger: 0.04, delay,
+          }
+        )
+      })
 
-    const tl = gsap.timeline({ delay: 1.1 })
-    tl.to(words, { y: '0%', opacity: 1, stagger: 0.08, duration: 0.9, ease: 'power3.out' })
-      .to(subRef.current, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3')
-      .to(ctaRef.current, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.4')
-      .to(scrollRef.current, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3')
+      gsap.fromTo(bar,   { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', delay: 0.9 })
+      gsap.fromTo(badge, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', delay: 1.1 })
+    }, containerRef)
 
-    // Scroll indicator yoyo
-    gsap.to('.scroll-line', {
-      height: 8,
-      opacity: 0.3,
-      duration: 1,
-      repeat: -1,
-      yoyo: true,
-      ease: 'power1.inOut',
-      delay: 2,
-    })
+    return () => ctx.revert()
   }, [])
-
-  const scrollToProjects = () => {
-    document.querySelector('#projects')?.scrollIntoView({ behavior: 'smooth' })
-  }
 
   return (
     <section
+      ref={containerRef}
       id="hero"
-      className="relative min-h-screen flex items-center"
-      style={{
-        background: `radial-gradient(ellipse 80% 60% at 70% 50%, rgba(232,160,69,0.06) 0%, transparent 70%)`,
-      }}
+      className="relative overflow-hidden"
+      style={{ background: 'var(--bg-invert)', height: '100svh' }}
     >
-      <div className="container w-full">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_400px] lg:grid-cols-[1fr_480px] gap-12 items-center min-h-screen py-32">
+      <ParticleGrid />
 
-          {/* Left — Text */}
-          <div className="flex flex-col justify-center">
-            {/* Available badge */}
-            <div className="flex items-center gap-2 mb-8">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span
-                className="text-xs tracking-widest uppercase"
-                style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}
-              >
-                Available for work
-              </span>
-            </div>
-
-            {/* Headline */}
-            <div ref={headlineRef} className="overflow-visible">
-              <div className="overflow-hidden">
-                <span
-                  className="word block leading-none"
-                  style={{
-                    fontSize: 'clamp(52px, 9vw, 120px)',
-                    fontStyle: 'italic',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontWeight: 700,
-                  }}
-                >
-                  Full Stack
-                </span>
-              </div>
-              <div className="overflow-hidden">
-                <span
-                  className="word block gradient-text leading-none"
-                  style={{
-                    fontSize: 'clamp(52px, 9vw, 120px)',
-                    fontStyle: 'italic',
-                    fontFamily: 'Georgia, "Times New Roman", serif',
-                    fontWeight: 700,
-                  }}
-                >
-                  Developer.
-                </span>
-              </div>
-              <div className="overflow-hidden mt-4">
-                <span
-                  className="word block"
-                  style={{
-                    fontSize: 'clamp(18px, 2.5vw, 28px)',
-                    color: 'var(--text-secondary)',
-                    fontStyle: 'normal',
-                    fontFamily: 'var(--font-geist-sans), system-ui',
-                    fontWeight: 400,
-                  }}
-                >
-                  {person.tagline}
-                </span>
-              </div>
-            </div>
-
-            {/* Subtitle */}
-            <p
-              ref={subRef}
-              className="mt-6 max-w-md text-base md:text-lg"
-              style={{ color: 'var(--text-secondary)', lineHeight: 1.7 }}
-            >
-              React · TypeScript · Node.js · ASP.NET Core
-              <br />
-              Web · Mobile · Real-time systems
-            </p>
-
-            {/* CTA buttons */}
-            <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mt-10">
-              <MagneticButton
-                onClick={scrollToProjects}
-                className="px-8 py-4 rounded-sm text-sm font-medium tracking-wide transition-colors"
-                style={{
-                  background: 'var(--accent)',
-                  color: '#080808',
-                  fontFamily: 'var(--font-geist-mono), monospace',
-                }}
-              >
-                View Work ↓
-              </MagneticButton>
-              <MagneticButton
-                as="a"
-                href={`mailto:${person.email}`}
-                className="px-8 py-4 rounded-sm text-sm font-medium tracking-wide transition-colors"
-                style={{
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-geist-mono), monospace',
-                }}
-              >
-                Get in Touch
-              </MagneticButton>
-            </div>
-          </div>
-
-          {/* Right — 3D Canvas */}
-          <div className="hidden md:block h-[480px] lg:h-[560px]">
-            <Scene />
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
+      {/* Availability badge */}
       <div
-        ref={scrollRef}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        data-badge
         style={{ opacity: 0 }}
+        className="absolute top-16 right-[var(--gutter)] flex items-center gap-2.5
+                   font-[family-name:var(--font-dm-mono)]
+                   uppercase tracking-[0.18em] text-[var(--accent)]"
       >
         <span
-          className="text-[11px] tracking-[0.4em] uppercase"
-          style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-geist-mono), monospace' }}
-        >
-          Scroll
-        </span>
-        <div
-          className="scroll-line w-px"
-          style={{ height: 32, background: 'var(--accent)' }}
+          style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: 'var(--accent)',
+            display: 'inline-block',
+            boxShadow: '0 0 6px var(--accent)',
+            animation: 'pulse 2s ease-in-out infinite',
+          }}
         />
+        <span style={{ fontSize: '12px' }}>OPEN TO WORK</span>
+      </div>
+
+      {/* Name block */}
+      <div className="absolute bottom-20 left-[var(--gutter)]">
+        {nameLines.map(({ text, delay, accent }) => (
+          <div
+            key={text}
+            data-letters
+            data-delay={String(delay)}
+            style={{ overflow: 'hidden', lineHeight: 0.92 }}
+          >
+            {text.split('').map((char, i) => (
+              <span
+                key={i}
+                className="letter"
+                style={{
+                  display: 'inline-block',
+                  fontSize: 'var(--type-display)',
+                  fontFamily: 'var(--font-syne), sans-serif',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  color: accent && char === '.' ? 'var(--accent)' : 'var(--ink-invert)',
+                }}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom info bar */}
+      <div
+        data-bar
+        style={{
+          opacity: 0,
+          borderTop: '1px solid rgba(245,242,238,0.08)',
+        }}
+        className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-between px-[var(--gutter)]
+                   font-[family-name:var(--font-dm-mono)]
+                   text-[var(--type-micro)] uppercase tracking-[0.2em]"
+      >
+        <span style={{ color: 'rgba(184,176,168,0.7)' }}>Full Stack Developer</span>
+        <span className="hidden sm:block" style={{ color: 'rgba(184,176,168,0.5)' }}>
+          React · TypeScript · Node.js · ASP.NET
+        </span>
+        <span style={{ color: 'rgba(184,176,168,0.7)' }}>↓ Scroll</span>
       </div>
     </section>
   )

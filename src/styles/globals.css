@@ -1,34 +1,55 @@
 @import "tailwindcss";
 
-/* ─── Design tokens ──────────────────────────────────── */
+/* ─── Design Tokens ─────────────────────────────────────── */
 :root {
-  --bg-primary:    #080808;
-  --bg-secondary:  #0f0f0f;
-  --bg-tertiary:   #161616;
+  /* === BACKGROUND SYSTEM === */
+  --bg-canvas:    #F5F2EE;
+  --bg-surface:   #EDEAE5;
+  --bg-invert:    #0E0E0E;
+  --bg-invert-2:  #1A1A1A;
 
-  --text-primary:  #f0ede8;
-  --text-secondary:#a09a94;
-  --text-muted:    #4a4540;
+  /* === TYPE COLORS === */
+  --ink-primary:   #0E0E0E;
+  --ink-secondary: #6B6460;
+  --ink-muted:     #B8B0A8;
+  --ink-invert:    #F5F2EE;
 
-  --accent:        #e8a045;
-  --accent-dim:    #c47c1a;
-  --accent-glow:   rgba(232,160,69,0.15);
+  /* === ACCENT — ONE COLOR === */
+  --accent:      #00E5A0;
+  --accent-dim:  #00B87E;
+  --accent-glow: rgba(0, 229, 160, 0.12);
+  --accent-bg:   rgba(0, 229, 160, 0.06);
 
-  --gradient-text: linear-gradient(135deg, #e8a045 0%, #f0ede8 50%, #b87333 100%);
+  /* === TYPOGRAPHY SCALE === */
+  --type-display: clamp(72px, 11vw, 160px);
+  --type-title:   clamp(40px, 6vw, 88px);
+  --type-lead:    clamp(18px, 2vw, 24px);
+  --type-body:    16px;
+  --type-small:   13px;
+  --type-micro:   11px;
 
-  --border:        rgba(240,237,232,0.08);
-  --border-hover:  rgba(232,160,69,0.3);
+  /* === SPACING === */
+  --section-gap:  clamp(120px, 15vw, 200px);
+  --content-max:  1400px;
+  --gutter:       clamp(24px, 5vw, 80px);
 
-  --max-w:         1320px;
+  /* === MOTION TOKENS === */
+  --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-expo:   cubic-bezier(0.95, 0.05, 0.795, 0.035);
+  --ease-in-out:    cubic-bezier(0.76, 0, 0.24, 1);
+  --duration-fast:  0.4s;
+  --duration-mid:   0.8s;
+  --duration-slow:  1.2s;
 }
 
-/* Register font vars with Tailwind theme so font-sans / font-mono utilities work */
+/* ─── Tailwind theme bridge ─────────────────────────────── */
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-syne);
+  --font-mono:    var(--font-dm-mono);
+  --font-body:    var(--font-dm-sans);
 }
 
-/* ─── Base layer (resets that must not override utilities) ── */
+/* ─── Base ──────────────────────────────────────────────── */
 @layer base {
   html {
     cursor: none;
@@ -36,9 +57,9 @@
   }
 
   body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    background-color: var(--bg-canvas);
+    color: var(--ink-primary);
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -46,40 +67,17 @@
 
   @media (hover: none) {
     html { cursor: auto; }
-    #custom-cursor, #cursor-follower { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-/* ─── Cursor elements (ID selectors — high specificity, fine outside layers) ── */
-#custom-cursor {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.2s ease, height 0.2s ease;
-}
-
-#cursor-follower {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--accent);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: width 0.2s ease, height 0.2s ease, border-color 0.3s ease;
-  mix-blend-mode: difference;
-}
-
-#custom-cursor.hover  { width: 0;   height: 0; }
-#cursor-follower.hover { width: 80px; height: 80px; border-color: var(--text-primary); }
-
-/* ─── @keyframes (must live outside any layer) ── */
+/* ─── Keyframes ─────────────────────────────────────────── */
 @keyframes marquee-left {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -90,89 +88,59 @@
   to   { transform: translateX(0); }
 }
 
-/* ─── Component classes ─────────────────────────────── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Component classes ─────────────────────────────────── */
 @layer components {
-  .gradient-text {
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .section-padding {
-    padding-top: 120px;
-    padding-bottom: 120px;
-  }
-
-  @media (max-width: 768px) {
-    .section-padding {
-      padding-top: 64px;
-      padding-bottom: 64px;
-    }
-  }
-
   .container {
-    max-width: var(--max-w);
+    max-width: var(--content-max);
     margin-left: auto;
     margin-right: auto;
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
   }
 
-  @media (max-width: 768px) {
-    .container {
-      padding-left: 16px;
-      padding-right: 16px;
-    }
+  .section-pad {
+    padding-top: var(--section-gap);
+    padding-bottom: var(--section-gap);
   }
 
-  .divider {
+  /* Marquee utilities */
+  .animate-marquee-left  { animation: marquee-left  25s linear infinite; }
+  .animate-marquee-right { animation: marquee-right 25s linear infinite; }
+
+  /* Clip-reveal container — each word sits inside overflow:hidden */
+  .clip-wrap {
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  /* Underline sweep from left */
+  .underline-sweep {
+    position: relative;
+    text-decoration: none;
+  }
+  .underline-sweep::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
     width: 100%;
     height: 1px;
-    background: var(--border);
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s var(--ease-out-expo);
   }
+  .underline-sweep:hover::after { transform: scaleX(1); }
 
-  .form-input {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-primary);
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
-    font-size: 16px;
-    width: 100%;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    padding-left: 0;
-    padding-right: 0;
-    outline: none;
-    transition: border-color 0.3s ease;
+  /* Thin grid overlay for dark sections */
+  .grid-overlay {
+    background-image:
+      repeating-linear-gradient(0deg, rgba(245,242,238,0.04) 0px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(90deg, rgba(245,242,238,0.04) 0px, transparent 1px, transparent 60px);
   }
-
-  .form-input:focus        { border-bottom-color: var(--accent); }
-  .form-input::placeholder { color: var(--text-muted); }
-
-  /* Marquee */
-  .animate-marquee-left  { animation: marquee-left  20s linear infinite; }
-  .animate-marquee-right { animation: marquee-right 20s linear infinite; }
-
-  .marquee-row:hover .animate-marquee-left,
-  .marquee-row:hover .animate-marquee-right {
-    animation-play-state: paused;
-  }
-
-  /* Timeline SVG */
-  .timeline-line {
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-  }
-
-  /* Code syntax tokens */
-  .token-keyword { color: #c792ea; }
-  .token-string  { color: #c3e88d; }
-  .token-comment { color: #546e7a; }
-  .token-type    { color: #82aaff; }
-  .token-number  { color: #f78c6c; }
-  .token-punct   { color: var(--text-secondary); }
-  .token-fn      { color: #82aaff; }
-  .token-var     { color: var(--text-primary); }
 }
