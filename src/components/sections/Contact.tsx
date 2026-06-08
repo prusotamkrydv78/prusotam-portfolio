@@ -117,6 +117,25 @@ export default function Contact() {
         >
           ↗ {person.github}
         </a>
+
+        <a
+          href="/resume.pdf"
+          download="Prusotam_Kumar_Yadav_Resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline-sweep"
+          style={{
+            fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
+            fontSize: 12,
+            color: 'rgba(248,245,240,0.6)',
+            textDecoration: 'none',
+            transition: 'color 0.25s ease',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-inverse)' }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = 'rgba(248,245,240,0.6)' }}
+        >
+          ↓ Download Resume
+        </a>
       </div>
 
       {/* Bottom row */}

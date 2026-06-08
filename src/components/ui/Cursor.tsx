@@ -24,7 +24,7 @@ export default function Cursor() {
 
       // Check section for ring border color
       const el = document.elementFromPoint(e.clientX, e.clientY)
-      const inDark = el?.closest('#hero, #contact') !== null
+      const inDark = el?.closest('#hero, #process, #proof, #contact') !== null
       setDark(inDark)
 
       // Check cursor-view / cursor-copy context

@@ -16,8 +16,9 @@ export default function Navbar() {
   const navRef     = useRef<HTMLElement>(null)
   const maskRef    = useRef<HTMLDivElement>(null)
   const linksRef   = useRef<(HTMLAnchorElement | null)[]>([])
-  const [theme, setTheme]     = useState<Theme>('dark') // hero is dark
+  const [theme, setTheme]       = useState<Theme>('dark') // hero is dark
   const [scrolled, setScrolled] = useState(false)
+  const [cvHovered, setCvHovered] = useState(false)
 
   /* Slide down on load */
   useEffect(() => {
@@ -34,10 +35,18 @@ export default function Navbar() {
       const y = window.scrollY
       setScrolled(y > 40)
       const hero    = document.getElementById('hero')
+      const process = document.getElementById('process')
+      const proof   = document.getElementById('proof')
       const contact = document.getElementById('contact')
       const inHero    = hero    ? y < hero.offsetHeight - 64 : false
+      const inProcess = process
+        ? y + 64 >= process.offsetTop && y + 64 < process.offsetTop + process.offsetHeight
+        : false
+      const inProof   = proof
+        ? y + 64 >= proof.offsetTop && y + 64 < proof.offsetTop + proof.offsetHeight
+        : false
       const inContact = contact ? y + 64 >= contact.offsetTop : false
-      setTheme(inHero || inContact ? 'dark' : 'light')
+      setTheme(inHero || inProcess || inProof || inContact ? 'dark' : 'light')
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
@@ -132,6 +141,34 @@ export default function Navbar() {
             {label}
           </a>
         ))}
+
+        {/* Download CV */}
+        <a
+          href="/resume.pdf"
+          download="Prusotam_Kumar_Yadav_Resume.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          onMouseEnter={() => {
+            if (maskRef.current) gsap.to(maskRef.current, { opacity: 0, duration: 0.2, ease: 'power2.out' })
+            setCvHovered(true)
+          }}
+          onMouseLeave={() => setCvHovered(false)}
+          className="t-label"
+          style={{
+            textDecoration: 'none',
+            padding: '8px 16px',
+            borderRadius: 2,
+            marginLeft: 8,
+            position: 'relative',
+            zIndex: 1,
+            border: `1px solid ${cvHovered ? 'var(--accent)' : theme === 'dark' ? 'var(--line-dark)' : 'var(--line)'}`,
+            color: cvHovered ? 'var(--black)' : textColor,
+            background: cvHovered ? 'var(--accent)' : 'transparent',
+            transition: 'background 0.25s ease, color 0.25s ease, border-color 0.25s ease',
+          }}
+        >
+          Download CV
+        </a>
       </div>
     </nav>
   )
