@@ -5,199 +5,254 @@ import { gsap } from 'gsap'
 import { triggerHeroReveal } from '@/components/sections/Hero'
 
 export default function Preloader() {
-  const overlayRef  = useRef<HTMLDivElement>(null)
-  const contentRef  = useRef<HTMLDivElement>(null)
-  const counterRef  = useRef<HTMLSpanElement>(null)
-  const nameRef     = useRef<HTMLDivElement>(null)
-  const roleRef     = useRef<HTMLDivElement>(null)
-  const vertBarRef  = useRef<HTMLDivElement>(null)
-  const horizBarRef = useRef<HTMLDivElement>(null)
-  const stripsRef   = useRef<HTMLDivElement[]>([])
+  const overlayRef   = useRef<HTMLDivElement>(null)
+  const contentRef   = useRef<HTMLDivElement>(null)
+  const counterRef   = useRef<HTMLSpanElement>(null)
+  const bigTextRef   = useRef<HTMLDivElement>(null)
+  const innerBarRef  = useRef<HTMLDivElement>(null)
+  const bottomBarRef = useRef<HTMLDivElement>(null)
+  const stripsRef    = useRef<HTMLDivElement[]>([])
 
   useEffect(() => {
     const overlay = overlayRef.current
     if (!overlay) return
 
+    /* Hide custom cursor while loading */
+    const cursorCanvas = document.querySelector('canvas') as HTMLCanvasElement | null
+    if (cursorCanvas) cursorCanvas.style.display = 'none'
+    document.body.style.cursor = 'default'
+
     document.body.style.overflow = 'hidden'
     ;(window as any).lenis?.stop()
 
     const counterEl  = counterRef.current!
+    const bigText    = bigTextRef.current!
+    const innerBar   = innerBarRef.current!
+    const bottomBar  = bottomBarRef.current!
     const counterObj = { value: 0 }
 
-    /* Phase 1 — label fade-ins */
-    gsap.fromTo(nameRef.current,
+    /* Fade in content layer */
+    gsap.fromTo(contentRef.current,
       { opacity: 0 },
-      { opacity: 0.3, duration: 0.6, ease: 'power2.out' }
-    )
-    gsap.fromTo(roleRef.current,
-      { opacity: 0 },
-      { opacity: 0.3, duration: 0.6, ease: 'power2.out', delay: 0.3 }
+      { opacity: 1, duration: 0.5, ease: 'power2.out' }
     )
 
-    /* Phase 1 — counter 0 → 100 + synced bars (2.5s — visible and weighty) */
+    /* Smooth counter — linear ease, every rAF frame, no integer jumps */
     gsap.to(counterObj, {
-      value: 100,
+      value:    100,
       duration: 2.5,
-      ease: 'power2.inOut',
-      onUpdate() { counterEl.textContent = Math.round(counterObj.value) + '%' },
+      ease:     'none',
+      onUpdate() {
+        const v = counterObj.value
+        /* Use toFixed(1) internally but display as integer — avoids floor-jump */
+        const display = Math.min(100, Math.round(v))
+        counterEl.textContent = display + '%'
+        innerBar.style.width  = v + '%'
+        bottomBar.style.width = v + '%'
+        bigText.style.opacity = String(0.06 + (v / 100) * 0.06)
+      },
     })
-    gsap.to(vertBarRef.current,  { scaleY: 1, duration: 2.5, ease: 'power2.inOut' })
-    gsap.to(horizBarRef.current, { scaleX: 1, duration: 2.5, ease: 'power2.inOut' })
 
-    /* Phase 2 — exit: 0.4s beat after counter lands, then curtain exits */
+    /* Exit — 0.45s beat after counter lands */
     const delayed = gsap.delayedCall(2.95, () => {
       const tl = gsap.timeline({
         onComplete() {
-          overlay.style.display = 'none'
+          overlay.style.display    = 'none'
           document.body.style.overflow = ''
           ;(window as any).lenis?.start()
+          if (cursorCanvas) cursorCanvas.style.display = 'block'
+          document.body.style.cursor = 'none'
         },
       })
 
-      /* Content fades out so 100% lingers for a beat */
-      tl.to(contentRef.current, { opacity: 0, duration: 0.4, ease: 'expo.in' })
-      /* Pause */
-      tl.to({}, { duration: 0.15 })
-      /* 8 panels lift off from center outward — cubic motion */
+      /* Strips break apart — stagger from center */
       tl.to(stripsRef.current, {
         yPercent: -100,
         duration: 1.0,
         ease: 'power3.inOut',
         stagger: { amount: 0.45, from: 'center' },
-      })
-      /* Hero rises into the vacated space 0.6s before last strip exits */
+      }, 0)
+
+      /* Content moves up WITH the screen — no separate fade, rides with the center strip */
+      tl.to(contentRef.current, {
+        yPercent: -100,
+        duration: 1.0,
+        ease: 'power3.inOut',
+      }, 0)
+
       tl.add(() => { triggerHeroReveal() }, '-=0.6')
     })
 
     return () => {
       delayed.kill()
-      gsap.killTweensOf([counterObj, vertBarRef.current, horizBarRef.current, nameRef.current, roleRef.current])
+      gsap.killTweensOf([counterObj, bigText])
+      if (cursorCanvas) cursorCanvas.style.display = 'block'
+      document.body.style.cursor = 'none'
     }
   }, [])
+
+  const cornerLabel: React.CSSProperties = {
+    position:      'absolute',
+    fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+    fontSize:      11,
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
+    color:         'rgba(17,17,17,0.35)',
+  }
 
   return (
     <div
       ref={overlayRef}
       style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden' }}
     >
-      {/* 8 cream strips — contrast against dark hero, peel away in cubic motion */}
-      {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+      {/* ─── 8 dark strips — collectively form the black background ─── */}
+      {[0,1,2,3,4,5,6,7].map(i => (
         <div
           key={i}
           ref={el => { if (el) stripsRef.current[i] = el }}
           style={{
             position: 'absolute',
-            top: 0,
-            left: `${i * 12.5}%`,
-            width: 'calc(12.5% + 1px)',
-            height: '100vh',
+            top:      0,
+            left:     `${i * 12.5}%`,
+            width:    'calc(12.5% + 1px)',
+            height:   '100vh',
             background: 'var(--white)',
           }}
         />
       ))}
 
-      {/* Content layer — above strips via DOM order */}
+      {/* ─── Content layer — sits above strips via DOM order ─── */}
       <div
         ref={contentRef}
-        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0 }}
       >
-        {/* Top-left: name */}
+        {/* Thin horizontal centre line — structural grid feel */}
+        <div style={{
+          position:   'absolute',
+          top:        '50%',
+          left:       0,
+          width:      '100%',
+          height:     1,
+          background: 'rgba(17,17,17,0.07)',
+          transform:  'translateY(-50%)',
+        }} />
+
+        {/* Large watermark text — decorative, barely visible */}
         <div
-          ref={nameRef}
+          ref={bigTextRef}
           style={{
-            position: 'absolute',
-            top: 'clamp(24px, 4vw, 48px)',
-            left: 'clamp(24px, 5vw, 80px)',
-            fontFamily: 'var(--font-jb-mono), "JetBrains Mono", monospace',
-            fontSize: 11,
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'rgba(17,17,17,0.4)',
-            opacity: 0,
+            position:   'absolute',
+            top:        '50%',
+            left:       '50%',
+            transform:  'translate(-50%, -50%)',
+            textAlign:  'center',
+            opacity:    0.06,
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
           }}
         >
-          PRUSOTAM YADAV
+          {['FULL STACK', 'DEVELOPER'].map(line => (
+            <div key={line} style={{
+              fontFamily:    'var(--font-clash), Syne, sans-serif',
+              fontWeight:    800,
+              fontSize:      'clamp(56px, 10vw, 140px)',
+              color:         '#111111',
+              letterSpacing: '-0.04em',
+              lineHeight:    0.9,
+            }}>
+              {line}
+            </div>
+          ))}
         </div>
 
-        {/* Bottom-right: role */}
-        <div
-          ref={roleRef}
-          style={{
-            position: 'absolute',
-            bottom: 'clamp(52px, 7vw, 72px)',
-            right: 'clamp(24px, 5vw, 80px)',
-            fontFamily: 'var(--font-jb-mono), "JetBrains Mono", monospace',
-            fontSize: 11,
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            color: 'rgba(17,17,17,0.4)',
-            opacity: 0,
-          }}
-        >
+        {/* Counter box wrapper — fixed size, blur bg behind */}
+        <div style={{
+          position:  'absolute',
+          top:       '50%',
+          left:      '50%',
+          transform: 'translate(-50%, -50%)',
+          width:     340,
+          height:    240,
+        }}>
+          {/* Dark gray blurred blob */}
+          <div style={{
+            position:     'absolute',
+            inset:        '-24px',
+            background:   'rgba(55,55,65,0.5)',
+            filter:       'blur(36px)',
+            borderRadius: 8,
+          }} />
+
+          {/* Counter content */}
+          <div style={{
+            position:       'relative',
+            width:          '100%',
+            height:         '100%',
+            display:        'flex',
+            flexDirection:  'column',
+            alignItems:     'center',
+            justifyContent: 'center',
+            gap:            14,
+          }}>
+            <span style={{
+              fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+              fontSize:      10,
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase' as const,
+              color:         'rgba(59,130,246,0.8)',
+            }}>
+              LOADING
+            </span>
+
+            <span
+              ref={counterRef}
+              style={{
+                fontFamily:         'var(--font-clash), Syne, sans-serif',
+                fontWeight:         800,
+                fontSize:           'clamp(72px, 12vw, 140px)',
+                color:              '#111111',
+                letterSpacing:      '-0.05em',
+                lineHeight:         1,
+                display:            'block',
+                fontVariantNumeric: 'tabular-nums',
+                width:              '100%',
+                textAlign:          'center',
+              }}
+            >
+              0%
+            </span>
+
+            {/* Inner progress bar */}
+            <div style={{ width: '80%', height: 1, background: 'rgba(59,130,246,0.2)', position: 'relative' }}>
+              <div
+                ref={innerBarRef}
+                style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '0%', background: '#3B82F6' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Four corner labels */}
+        <div style={{ ...cornerLabel, top: 32, left: 'clamp(24px,5vw,64px)' }}>
+          PRUSOTAM YADAV
+        </div>
+        <div style={{ ...cornerLabel, top: 32, right: 'clamp(24px,5vw,64px)', textAlign: 'right' }}>
+          PORTFOLIO — 2026
+        </div>
+        <div style={{ ...cornerLabel, bottom: 32, left: 'clamp(24px,5vw,64px)' }}>
+          INDIA
+        </div>
+        <div style={{ ...cornerLabel, bottom: 32, right: 'clamp(24px,5vw,64px)', textAlign: 'right' }}>
           FULL STACK DEVELOPER
         </div>
 
-        {/* Bottom-left: large percentage counter */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 48,
-            left: 'clamp(24px, 5vw, 80px)',
-          }}
-        >
-          <span
-            ref={counterRef}
-            style={{
-              fontFamily: 'var(--font-clash), Syne, sans-serif',
-              fontWeight: 800,
-              fontSize: 'clamp(80px, 14vw, 180px)',
-              color: 'var(--black)',
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              display: 'block',
-            }}
-          >
-            0%
-          </span>
-        </div>
-
-        {/* Right edge: vertical progress bar */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 'clamp(24px, 5vw, 80px)',
-            width: 1,
-            height: '100%',
-            background: 'rgba(17,17,17,0.1)',
-          }}
-        >
+        {/* Bottom accent line — orange fill synced with counter */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 2, background: 'rgba(17,17,17,0.08)' }}>
           <div
-            ref={vertBarRef}
-            style={{
-              width: '100%',
-              height: '100%',
-              background: 'var(--accent)',
-              transformOrigin: 'top center',
-              transform: 'scaleY(0)',
-            }}
+            ref={bottomBarRef}
+            style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '0%', background: '#FF4D00' }}
           />
         </div>
-
-        {/* Bottom edge: horizontal accent line */}
-        <div
-          ref={horizBarRef}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            height: 2,
-            width: '100%',
-            background: 'var(--accent)',
-            transformOrigin: 'left center',
-            transform: 'scaleX(0)',
-          }}
-        />
       </div>
     </div>
   )
