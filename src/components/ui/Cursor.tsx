@@ -5,7 +5,8 @@ import { useEffect, useRef } from 'react'
 /* ─── Colours ────────────────────────────────────────────────── */
 const LIGHT = { r: 17,  g: 17,  b: 17  }   // #111111 — light sections
 const DARK  = { r: 248, g: 245, b: 240 }   // #F8F5F0 — dark sections
-const DARK_SELECTOR = '#hero, #process, #proof, #contact, #nav-overlay, #top-nav, #hamburger-btn'
+const DARK_SELECTOR      = '#hero, #process, #proof, #contact'
+const DARK_SELECTOR_NAV  = `${DARK_SELECTOR}, #top-nav, #hamburger-btn`
 
 /* ─── Trail settings ─────────────────────────────────────────── */
 const MAX_PTS        = 80    // max stored trail points
@@ -76,7 +77,8 @@ export default function Cursor() {
       lastMoveTime = Date.now()
 
       const el = document.elementFromPoint(e.clientX, e.clientY)
-      isDark = el?.closest(DARK_SELECTOR) !== null
+      const navOpen = (document.getElementById('nav-overlay') as HTMLElement | null)?.style.visibility === 'visible'
+      isDark = el?.closest(navOpen ? DARK_SELECTOR : DARK_SELECTOR_NAV) !== null
     }
     window.addEventListener('mousemove', onMove)
 
