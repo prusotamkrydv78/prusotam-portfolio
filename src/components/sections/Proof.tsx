@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
@@ -83,14 +83,14 @@ export default function Proof() {
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
         { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Clip-reveal headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
         { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.08,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Count up: 5+ — reverses to 0 on scroll back */
@@ -99,7 +99,7 @@ export default function Proof() {
         val: 5, duration: 1.3, ease: 'power2.out',
         onUpdate() { if (stat1Ref.current) stat1Ref.current.textContent = Math.floor(o1.val) + '+' },
         onComplete() { if (stat1Ref.current) stat1Ref.current.textContent = '5+' },
-        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' },
+        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%', scrub: 1 },
       })
 
       /* Count up: 3 */
@@ -108,7 +108,7 @@ export default function Proof() {
         val: 3, duration: 0.9, ease: 'power2.out', delay: 0.15,
         onUpdate() { if (stat2Ref.current) stat2Ref.current.textContent = String(Math.floor(o2.val)) },
         onComplete() { if (stat2Ref.current) stat2Ref.current.textContent = '3' },
-        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' },
+        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%', scrub: 1 },
       })
 
       /* Fade in: < 1yr */
@@ -116,7 +116,7 @@ export default function Proof() {
         gsap.fromTo(stat3Ref.current,
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.8, ease: EASE_OUT, delay: 0.3,
-            scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' } }
+            scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%', scrub: 1 } }
         )
       }
     }, sectionRef)
@@ -194,7 +194,7 @@ export default function Proof() {
         <h2 style={{ marginBottom: 72 }}>
           {['People say', 'things.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)' }}>
+              <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(248,245,240,0.28)' : 'var(--text-inverse)' }}>
                 {line}
               </span>
             </div>
@@ -215,7 +215,7 @@ export default function Proof() {
               userSelect: 'none', pointerEvents: 'none', zIndex: 0,
             }}
           >
-            "
+            &quot;
           </span>
 
           <div ref={quoteRef} style={{ paddingTop: 72, position: 'relative', zIndex: 1 }}>

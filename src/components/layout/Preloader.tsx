@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { triggerHeroReveal } from '@/components/sections/Hero'
+import Lenis from 'lenis'
 
 export default function Preloader() {
   const overlayRef   = useRef<HTMLDivElement>(null)
@@ -23,7 +24,7 @@ export default function Preloader() {
     document.body.style.cursor = 'default'
 
     document.body.style.overflow = 'hidden'
-    ;(window as any).lenis?.stop()
+    ;(window as unknown as { lenis?: Lenis }).lenis?.stop()
 
     const counterEl  = counterRef.current!
     const bigText    = bigTextRef.current!
@@ -59,7 +60,7 @@ export default function Preloader() {
         onComplete() {
           overlay.style.display    = 'none'
           document.body.style.overflow = ''
-          ;(window as any).lenis?.start()
+          ;(window as unknown as { lenis?: Lenis }).lenis?.start()
           if (cursorCanvas) cursorCanvas.style.display = 'block'
           document.body.style.cursor = 'none'
         },

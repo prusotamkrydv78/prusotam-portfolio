@@ -12,6 +12,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useCallback,
 } from 'react'
 
 if (typeof window !== 'undefined') {
@@ -19,19 +20,18 @@ if (typeof window !== 'undefined') {
 }
 
 function useMergeRefs<T>(...refs: (Ref<T> | undefined)[]) {
-  return useMemo(() => {
-    if (refs.every((ref) => ref == null)) return null
-    return (node: T) => {
-      refs.forEach((ref) => {
-        if (typeof ref === 'function') {
-          ref(node)
-        } else if (ref != null) {
-          ;(ref as React.MutableRefObject<T | null>).current = node
-        }
-      })
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, refs)
+  const refsRef = useRef(refs)
+  refsRef.current = refs
+
+  return useCallback((node: T) => {
+    refsRef.current.forEach((ref) => {
+      if (typeof ref === 'function') {
+        ref(node)
+      } else if (ref != null) {
+        ;(ref as React.MutableRefObject<T | null>).current = node
+      }
+    })
+  }, [])
 }
 
 function useResponsiveValue(baseValue: number, mobileValue: number) {
@@ -115,15 +115,22 @@ export const RadialScrollGallery = forwardRef<
 
     const childrenNodes = useMemo(
       () => React.Children.toArray(children(hoveredIndex)),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       [children, hoveredIndex]
     )
 
     const childrenCount = childrenNodes.length
 
     useEffect(() => {
-      setIsMounted(true)
-      if (!childRef.current) return
+      let active = true
+      const animId = requestAnimationFrame(() => {
+        if (active) setIsMounted(true)
+      })
+      if (!childRef.current) {
+        return () => {
+          active = false
+          cancelAnimationFrame(animId)
+        }
+      }
 
       const observer = new ResizeObserver((entries) => {
         for (const entry of entries) {
@@ -136,7 +143,11 @@ export const RadialScrollGallery = forwardRef<
       })
 
       observer.observe(childRef.current)
-      return () => observer.disconnect()
+      return () => {
+        active = false
+        cancelAnimationFrame(animId)
+        observer.disconnect()
+      }
     }, [childrenCount])
 
     useGSAP(

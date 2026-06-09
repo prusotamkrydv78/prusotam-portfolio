@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
@@ -71,14 +71,14 @@ export default function GitHubActivity() {
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
         { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
         { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Stat counters — reverse counts down */
@@ -94,7 +94,7 @@ export default function GitHubActivity() {
           val: target, duration: 1.6, ease: 'power2.out',
           onUpdate() { if (ref.current) ref.current.textContent = Math.floor(obj.val) + suffix },
           onComplete() { if (ref.current) ref.current.textContent = target + suffix },
-          scrollTrigger: { trigger: el, start: 'top 68%', end: 'top 15%' },
+          scrollTrigger: { trigger: el, start: 'top 68%', end: 'top 15%', scrub: 1 },
         })
       })
 
@@ -105,7 +105,7 @@ export default function GitHubActivity() {
           opacity: 1, scale: 1,
           duration: 0.25, ease: 'elastic.out(1, 0.8)',
           stagger: { from: 'start', amount: 1.2 },
-          scrollTrigger: { trigger: '.heatmap-wrap', start: 'top 82%', end: 'top 15%' },
+          scrollTrigger: { trigger: '.heatmap-wrap', start: 'top 82%', end: 'top 15%', scrub: 1 },
         }
       )
     }, sectionRef)

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
@@ -58,14 +58,14 @@ export default function BentoStack() {
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
         { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
         { y: '0%', opacity: 1, duration: 0.9, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Wave entrance — cells enter in grid order */
@@ -75,7 +75,7 @@ export default function BentoStack() {
           opacity: 1, scale: 1, y: 0,
           duration: 0.65, ease: EASE_OUT,
           stagger: { from: 'start', each: 0.06, grid: 'auto' },
-          scrollTrigger: { trigger: '.bento-grid', start: 'top 80%', end: 'top 15%' },
+          scrollTrigger: { trigger: '.bento-grid', start: 'top 80%', end: 'top 15%', scrub: 1 },
         }
       )
     }, sectionRef)
@@ -125,7 +125,7 @@ export default function BentoStack() {
         <h2>
           {['Tools of', 'the trade.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)' }}>
+              <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(17,17,17,0.28)' : 'var(--text-primary)' }}>
                 {line}
               </span>
             </div>

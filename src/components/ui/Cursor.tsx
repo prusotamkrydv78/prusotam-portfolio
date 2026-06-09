@@ -213,7 +213,11 @@ export default function Cursor() {
           const wobY    = Math.cos(angle * 2 + 0.8) * 2.0
           const x = hl.cx + (hl.rx + wobX) * Math.cos(angle)
           const y = hl.cy + (hl.ry + wobY) * Math.sin(angle)
-          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+          if (i === 0) {
+            ctx.moveTo(x, y)
+          } else {
+            ctx.lineTo(x, y)
+          }
         }
 
         ctx.strokeStyle = hl.color

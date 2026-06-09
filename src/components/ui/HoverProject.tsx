@@ -87,7 +87,11 @@ function useAbstractCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>,
               const a  = Math.PI / 3 * k - Math.PI / 6
               const px = x + size * Math.cos(a)
               const py = y + size * Math.sin(a)
-              k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py)
+              if (k === 0) {
+                ctx.moveTo(px, py)
+              } else {
+                ctx.lineTo(px, py)
+              }
             }
             ctx.closePath(); ctx.stroke()
           }

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
@@ -17,7 +17,7 @@ export default function Ticker() {
       gsap.fromTo(wrapRef.current,
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 0.5, ease: EASE_OUT,
-          scrollTrigger: { trigger: wrapRef.current, start: 'top 90%', end: 'top 20%' } }
+          scrollTrigger: { trigger: wrapRef.current, start: 'top 90%', end: 'top 20%', scrub: 1 } }
       )
     })
     return () => ctx.revert()

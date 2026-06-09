@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
@@ -33,35 +33,35 @@ export default function About() {
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
         { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Bio headline clip reveal */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
         { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.12,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Extra items */
       if (extras.length) gsap.fromTo(extras,
         { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Stat boxes entrance */
       if (boxes.length) gsap.fromTo(boxes,
         { scale: 0.9, opacity: 0 },
         { scale: 1, opacity: 1, duration: 0.6, ease: 'elastic.out(1, 0.75)', stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 72%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 72%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Tech pill entrance wave */
       if (pills.length) gsap.fromTo(pills,
         { scale: 0.8, opacity: 0, y: 4 },
         { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.8)', stagger: 0.04,
-          scrollTrigger: { trigger: el, start: 'top 70%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 70%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Stats count-up (reverses on scroll up) */
@@ -74,7 +74,7 @@ export default function About() {
           duration: 1.4, ease: 'power2.out',
           onUpdate() { el2.textContent = Math.round(obj.val) + s.suffix },
           onComplete() { el2.textContent = s.value + s.suffix },
-          scrollTrigger: { trigger: el2, start: 'top 88%', end: 'top 20%' },
+          scrollTrigger: { trigger: el2, start: 'top 88%', end: 'top 20%', scrub: 1 },
         })
       })
     }, sectionRef)
@@ -99,7 +99,7 @@ export default function About() {
             <div style={{ marginBottom: 32 }}>
               {bioLines.map((line, i) => (
                 <div key={i} style={{ overflow: 'hidden' }}>
-                  <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)', lineHeight: 1.05 }}>
+                  <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(17,17,17,0.28)' : 'var(--text-primary)', lineHeight: 1.05 }}>
                     {line}
                   </span>
                 </div>

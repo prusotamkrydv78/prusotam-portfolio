@@ -1,4 +1,4 @@
-﻿import { gsap } from 'gsap'
+import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -22,15 +22,15 @@ export function scrollReveal(
   target: string | Element,
   options: gsap.TweenVars & { scrollTrigger?: Partial<ScrollTrigger.Vars> } = {}
 ) {
-  const { scrollTrigger: stOpts, ...tweenOpts } = options as any
+  const { scrollTrigger: stOpts, ...tweenOpts } = options as Record<string, unknown>
   return gsap.from(target, {
+    ...tweenOpts,
     opacity: 0,
     y: 32,
     duration: DUR_MID,
     ease: EASE_OUT,
-    scrollTrigger: { trigger: target as Element, ...ST_REV, ...(stOpts || {}) },
-    ...tweenOpts,
-  })
+    scrollTrigger: { trigger: target as Element, ...ST_REV, ...(stOpts as Record<string, unknown> || {}) },
+  } as gsap.TweenVars)
 }
 
 /* ── staggerReveal ── for lists and grids ───────────────────────── */
@@ -39,8 +39,9 @@ export function staggerReveal(
   trigger: string | Element,
   options: gsap.TweenVars & { scrollTrigger?: Partial<ScrollTrigger.Vars> } = {}
 ) {
-  const { scrollTrigger: stOpts, ...tweenOpts } = options as any
+  const { scrollTrigger: stOpts, ...tweenOpts } = options as Record<string, unknown>
   return gsap.from(targets, {
+    ...tweenOpts,
     opacity: 0,
     y: 28,
     duration: 0.8,
@@ -49,10 +50,9 @@ export function staggerReveal(
     scrollTrigger: {
       trigger: trigger as Element,
       start: 'top 80%', end: 'top 15%',
-      ...(stOpts || {}),
+      ...(stOpts as Record<string, unknown> || {}),
     },
-    ...tweenOpts,
-  })
+  } as gsap.TweenVars)
 }
 
 /* ── clipReveal ── for headlines (overflow:hidden > [data-line]) ── */
@@ -61,20 +61,20 @@ export function clipReveal(
   lines: string | Element | NodeListOf<Element>,
   options: gsap.TweenVars & { scrollTrigger?: Partial<ScrollTrigger.Vars> } = {}
 ) {
-  const { scrollTrigger: stOpts, ...tweenOpts } = options as any
+  const { scrollTrigger: stOpts, ...tweenOpts } = options as Record<string, unknown>
   return gsap.fromTo(
     lines,
     { y: '108%', rotation: 1.5, opacity: 0 },
     {
+      ...tweenOpts,
       y: '0%', rotation: 0, opacity: 1,
       duration: 1.0, ease: EASE_OUT, stagger: 0.055,
       scrollTrigger: {
         trigger: trigger as Element,
         start: 'top 85%', end: 'top 10%',
-        ...(stOpts || {}),
+        ...(stOpts as Record<string, unknown> || {}),
       },
-      ...tweenOpts,
-    }
+    } as gsap.TweenVars
   )
 }
 
@@ -84,21 +84,21 @@ export function slideIn(
   from: 'left' | 'right' = 'left',
   options: gsap.TweenVars & { scrollTrigger?: Partial<ScrollTrigger.Vars> } = {}
 ) {
-  const { scrollTrigger: stOpts, ...tweenOpts } = options as any
+  const { scrollTrigger: stOpts, ...tweenOpts } = options as Record<string, unknown>
   return gsap.fromTo(
     target,
     { scaleX: 0 },
     {
+      ...tweenOpts,
       scaleX: 1,
       transformOrigin: from === 'left' ? 'left center' : 'right center',
       duration: 0.9, ease: EASE_OUT,
       scrollTrigger: {
         trigger: target as Element,
         start: 'top 88%', end: 'top 20%',
-        ...(stOpts || {}),
+        ...(stOpts as Record<string, unknown> || {}),
       },
-      ...tweenOpts,
-    }
+    } as gsap.TweenVars
   )
 }
 
@@ -108,20 +108,20 @@ export function sectionLabel(
   trigger: string | Element,
   options: gsap.TweenVars & { scrollTrigger?: Partial<ScrollTrigger.Vars> } = {}
 ) {
-  const { scrollTrigger: stOpts, ...tweenOpts } = options as any
+  const { scrollTrigger: stOpts, ...tweenOpts } = options as Record<string, unknown>
   return gsap.fromTo(
     target,
     { opacity: 0, letterSpacing: '0em' },
     {
+      ...tweenOpts,
       opacity: 1, letterSpacing: '0.15em',
       duration: 0.6, ease: EASE_OUT,
       scrollTrigger: {
         trigger: trigger as Element,
         start: 'top 88%', end: 'top 20%',
-        ...(stOpts || {}),
+        ...(stOpts as Record<string, unknown> || {}),
       },
-      ...tweenOpts,
-    }
+    } as gsap.TweenVars
   )
 }
 

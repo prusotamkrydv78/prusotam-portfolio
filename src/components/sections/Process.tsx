@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
@@ -45,28 +45,28 @@ export default function Process() {
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
         { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
       )
 
       /* Headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
         { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%' } }
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
       )
 
       /* Step titles */
       gsap.fromTo(titles,
         { opacity: 0, y: 16 },
         { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%' }, delay: 0.3 }
+          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 }, delay: 0.3 }
       )
 
       /* Step bodies */
       gsap.fromTo(bodies,
         { opacity: 0, y: 12 },
         { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%' }, delay: 0.45 }
+          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 }, delay: 0.45 }
       )
 
       /* Numbers — flicker then count up */
@@ -77,7 +77,7 @@ export default function Process() {
         const obj    = { val: 0 }
 
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%' },
+          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 },
         })
         tl.to(numEl, { opacity: 0.2, duration: 0.08, yoyo: true, repeat: 3, ease: 'none' })
         tl.to(obj, {
@@ -127,7 +127,7 @@ export default function Process() {
         <h2>
           {['How I', 'approach it.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)' }}>
+              <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(248,245,240,0.28)' : 'var(--text-inverse)' }}>
                 {line}
               </span>
             </div>

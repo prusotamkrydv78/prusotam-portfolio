@@ -126,6 +126,7 @@ function ProjectCard({
           boxShadow:     hovered ? '0 20px 60px rgba(0,0,0,0.4)' : 'none',
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={project.img}
           alt={project.title}
@@ -240,7 +241,7 @@ export default function Work() {
         {
           y: '0%', opacity: 1,
           duration: DUR_MID, ease: EASE_OUT, stagger: 0.07,
-          scrollTrigger: { trigger: el, start: 'top 80%', once: true },
+          scrollTrigger: { trigger: el, start: 'top 80%', end: 'top 20%', scrub: 1 },
         }
       )
     })
@@ -377,8 +378,8 @@ export default function Work() {
                 <div key={i} style={{ overflow: 'hidden' }}>
                   <span
                     data-line
-                    className="t-title"
-                    style={{ display: 'block', color: 'var(--text-primary)' }}
+                    className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`}
+                    style={{ display: 'block', color: i === 0 ? 'rgba(17,17,17,0.28)' : 'var(--text-primary)' }}
                   >
                     {line}
                   </span>

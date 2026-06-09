@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { gsap } from 'gsap'
 import { person } from '@/lib/data'
+import Lenis from 'lenis'
 
 const NAV_LINKS = [
   { index: '01', label: 'Work',     href: '#work'     },
@@ -103,17 +104,36 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', check)
   }, [])
 
+  /* ── transition navbar colors on theme change ── */
+  useEffect(() => {
+    if (isOpenRef.current) return
+    const isDark = theme === 'dark'
+    const targetBg = isDark ? 'rgba(17,17,17,0.97)' : 'rgba(245,240,234,0.97)'
+    const targetBorder = isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(17,17,17,0.07)'
+    const targetFg = isDark ? CLR_LIGHT : CLR_DARK
+
+    gsap.to(navRef.current, { backgroundColor: targetBg, borderBottom: targetBorder, duration: 0.4, ease: 'power2.out' })
+    gsap.to(logoRef.current, { color: targetFg, duration: 0.4, ease: 'power2.out' })
+    gsap.to([line1Ref.current, line2Ref.current], { backgroundColor: targetFg, duration: 0.4, ease: 'power2.out' })
+    gsap.to(closeLblRef.current, { color: targetFg, duration: 0.4, ease: 'power2.out' })
+  }, [theme])
+
   /* ────────────────────────────────────────────────────────
      Shared helper: revert nav-bar + hamburger colours to
      their "closed" state (dark background, light elements)
   ──────────────────────────────────────────────────────── */
-  const revertNavColors = (tl: gsap.core.Timeline, at: number | string) => {
-    if (navRef.current)    tl.to(navRef.current,    { backgroundColor: 'rgba(17,17,17,0.97)', duration: 0.3, ease: 'none' }, at)
-    if (logoRef.current)   tl.to(logoRef.current,   { color: CLR_LIGHT,                       duration: 0.25, ease: 'none' }, at)
-    if (line1Ref.current)  tl.to(line1Ref.current,  { backgroundColor: CLR_LIGHT,             duration: 0.25, ease: 'none' }, at)
-    if (line2Ref.current)  tl.to(line2Ref.current,  { backgroundColor: CLR_LIGHT,             duration: 0.25, ease: 'none' }, at)
-    if (closeLblRef.current) tl.to(closeLblRef.current, { color: CLR_LIGHT,                   duration: 0.25, ease: 'none' }, at)
-  }
+  const revertNavColors = useCallback((tl: gsap.core.Timeline, at: number | string) => {
+    const isDark = theme === 'dark'
+    const targetBg = isDark ? 'rgba(17,17,17,0.97)' : 'rgba(245,240,234,0.97)'
+    const targetBorder = isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(17,17,17,0.07)'
+    const targetFg = isDark ? CLR_LIGHT : CLR_DARK
+
+    if (navRef.current)    tl.to(navRef.current,    { backgroundColor: targetBg, borderBottom: targetBorder, duration: 0.3, ease: 'none' }, at)
+    if (logoRef.current)   tl.to(logoRef.current,   { color: targetFg,                       duration: 0.25, ease: 'none' }, at)
+    if (line1Ref.current)  tl.to(line1Ref.current,  { backgroundColor: targetFg,             duration: 0.25, ease: 'none' }, at)
+    if (line2Ref.current)  tl.to(line2Ref.current,  { backgroundColor: targetFg,             duration: 0.25, ease: 'none' }, at)
+    if (closeLblRef.current) tl.to(closeLblRef.current, { color: targetFg,                   duration: 0.25, ease: 'none' }, at)
+  }, [theme])
 
   /* ── close ── */
   const closeMenu = useCallback(() => {
@@ -132,7 +152,7 @@ export default function Navbar() {
         overlay.style.visibility = 'hidden'
         overlay.style.pointerEvents = 'none'
         document.body.style.overflow = ''
-        ;(window as any).lenis?.start()
+        ;(window as unknown as { lenis?: Lenis }).lenis?.start()
       },
     })
 
@@ -145,7 +165,7 @@ export default function Navbar() {
       x: '100vw', duration: 0.45, ease: 'expo.inOut',
       stagger: { each: 0.05, from: 'start' },
     }, '-=0.1')
-  }, [])
+  }, [revertNavColors])
 
   /* ── open ── */
   const openMenu = useCallback(() => {
@@ -161,7 +181,7 @@ export default function Navbar() {
     overlay.style.visibility = 'visible'
     overlay.style.pointerEvents = 'auto'
     document.body.style.overflow = 'hidden'
-    ;(window as any).lenis?.stop()
+    ;(window as unknown as { lenis?: Lenis }).lenis?.stop()
 
     gsap.set(stripsRef.current,                       { x: '100vw' })
     gsap.set(navContentRef.current,                   { opacity: 0, y: 30 })
@@ -223,7 +243,7 @@ export default function Navbar() {
         overlay.style.visibility = 'hidden'
         overlay.style.pointerEvents = 'none'
         document.body.style.overflow = ''
-        const lenis = (window as any).lenis
+        const lenis = (window as unknown as { lenis?: Lenis }).lenis
         lenis?.start()
         setTimeout(() => {
           if (lenis) lenis.scrollTo(href, { duration: 1.4 })
@@ -241,7 +261,7 @@ export default function Navbar() {
       x: '100vw', duration: 0.45, ease: 'expo.inOut',
       stagger: { each: 0.05, from: 'start' },
     }, '-=0.1')
-  }, [])
+  }, [revertNavColors])
 
   /* ── Escape key ── */
   useEffect(() => {
@@ -273,7 +293,7 @@ export default function Navbar() {
         <a
           ref={logoRef}
           href="#"
-          onClick={e => { e.preventDefault(); !isOpenRef.current && window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+          onClick={e => { e.preventDefault(); if (!isOpenRef.current) window.scrollTo({ top: 0, behavior: 'smooth' }) }}
           data-cursor="highlight" data-cursor-color="#111111"
           style={{ fontFamily: 'var(--font-clash),Syne,sans-serif', fontWeight: 700, fontSize: 17, color: CLR_LIGHT, textDecoration: 'none', display: 'inline-flex' }}
           onMouseEnter={() => {

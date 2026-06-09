@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -35,7 +35,8 @@ export default function FloatingGeometry() {
     groupRef.current.rotation.x = target.current.y
   })
 
-  const geo = new THREE.IcosahedronGeometry(1.4, 1)
+  const geo = useMemo(() => new THREE.IcosahedronGeometry(1.4, 1), [])
+  const edgesGeo = useMemo(() => new THREE.EdgesGeometry(geo), [geo])
 
   return (
     <group ref={groupRef}>
@@ -48,7 +49,7 @@ export default function FloatingGeometry() {
           metalness={0.8}
         />
       </mesh>
-      <lineSegments ref={wireRef} geometry={new THREE.EdgesGeometry(geo)}>
+      <lineSegments ref={wireRef} geometry={edgesGeo}>
         <lineBasicMaterial color="#e8a045" transparent opacity={0.6} />
       </lineSegments>
 
@@ -63,18 +64,18 @@ export default function FloatingGeometry() {
   )
 }
 
-function ParticleField() {
-  const count = 200
-  const positions = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const r = 3 + Math.random() * 2
-    const theta = Math.random() * Math.PI * 2
-    const phi = Math.acos(2 * Math.random() - 1)
-    positions[i * 3] = r * Math.sin(phi) * Math.cos(theta)
-    positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
-    positions[i * 3 + 2] = r * Math.cos(phi)
-  }
+const PARTICLE_COUNT = 200
+const PARTICLE_POSITIONS = new Float32Array(PARTICLE_COUNT * 3)
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const r = 3 + Math.random() * 2
+  const theta = Math.random() * Math.PI * 2
+  const phi = Math.acos(2 * Math.random() - 1)
+  PARTICLE_POSITIONS[i * 3] = r * Math.sin(phi) * Math.cos(theta)
+  PARTICLE_POSITIONS[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
+  PARTICLE_POSITIONS[i * 3 + 2] = r * Math.cos(phi)
+}
 
+function ParticleField() {
   const ref = useRef<THREE.Points>(null)
   useFrame(({ clock }) => {
     if (ref.current) {
@@ -87,7 +88,7 @@ function ParticleField() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          args={[positions, 3]}
+          args={[PARTICLE_POSITIONS, 3]}
         />
       </bufferGeometry>
       <pointsMaterial color="#f0ede8" size={0.025} sizeAttenuation transparent opacity={0.6} />
