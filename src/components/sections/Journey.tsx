@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
@@ -38,17 +38,23 @@ export default function Journey() {
 
   useEffect(() => {
     if (!sectionRef.current) return
-    const lines = sectionRef.current.querySelectorAll('[data-line]')
+    const el    = sectionRef.current
+    const lines  = el.querySelectorAll('[data-line]')
+    const label  = el.querySelector('.section-label')
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        lines,
+      /* Section label */
+      if (label) gsap.fromTo(label,
+        { opacity: 0, letterSpacing: '0em' },
+        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+      )
+
+      /* Headline clip reveal */
+      gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
-        {
-          y: '0%', opacity: 1,
-          duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 75%', once: true },
-        }
+        { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%' } }
       )
     }, sectionRef)
 
@@ -59,11 +65,7 @@ export default function Journey() {
     <section
       id="journey"
       ref={sectionRef}
-      style={{
-        background:    'var(--white)',
-        paddingTop:    'var(--section-v)',
-        paddingBottom: 'var(--section-v)',
-      }}
+      style={{ background: 'var(--white)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' }}
     >
       <div className="container">
         <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 48 }}>
@@ -73,11 +75,7 @@ export default function Journey() {
         <h2 style={{ marginBottom: 64 }}>
           {['The path', 'here.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span
-                data-line
-                className="t-title"
-                style={{ display: 'block', color: 'var(--text-primary)' }}
-              >
+              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)' }}>
                 {line}
               </span>
             </div>

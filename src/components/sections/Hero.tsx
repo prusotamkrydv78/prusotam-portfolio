@@ -147,6 +147,48 @@ export default function Hero() {
     }
   }, [])
 
+  /* ─── Mouse parallax on headlines ─── */
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || window.innerWidth < 768) return
+
+    const words = el.querySelectorAll<HTMLSpanElement>('.hero-word')
+    const line1 = words[0]  // "Full Stack"
+    const line2 = words[1]  // "Developer."
+
+    let tx1 = 0, ty1 = 0, cx1 = 0, cy1 = 0
+    let tx2 = 0, ty2 = 0, cx2 = 0, cy2 = 0
+    let raf: number
+    let isHovering = false
+
+    const onMove = (e: MouseEvent) => {
+      isHovering = true
+      tx1 = Math.max(-12, Math.min(12, e.clientX * -0.008))
+      ty1 = Math.max(-8,  Math.min(8,  e.clientY * -0.005))
+      tx2 = Math.max(-12, Math.min(12, e.clientX *  0.006))
+      ty2 = Math.max(-8,  Math.min(8,  e.clientY *  0.004))
+    }
+    const onLeave = () => { isHovering = false; tx1 = ty1 = tx2 = ty2 = 0 }
+
+    const loop = () => {
+      const lf = isHovering ? 0.06 : 0.04
+      cx1 += (tx1 - cx1) * lf; cy1 += (ty1 - cy1) * lf
+      cx2 += (tx2 - cx2) * lf; cy2 += (ty2 - cy2) * lf
+      if (line1) gsap.set(line1, { x: cx1, y: cy1 })
+      if (line2) gsap.set(line2, { x: cx2, y: cy2 })
+      raf = requestAnimationFrame(loop)
+    }
+    loop()
+
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      cancelAnimationFrame(raf)
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+    }
+  }, [])
+
   /* ─── GSAP reveal (called by Preloader when strips exit) ─── */
   useEffect(() => {
     const el = sectionRef.current
@@ -156,6 +198,7 @@ export default function Hero() {
     const topRight    = el.querySelector<HTMLElement>('.hero-top-right')
     const infoItems   = el.querySelectorAll<HTMLElement>('[data-hero-info]')
     const scrollHint  = el.querySelector<HTMLElement>('.hero-scroll-hint')
+    const arrowChar   = el.querySelector<HTMLElement>('.hero-scroll-arrow')
     const bottomStrip = el.querySelector<HTMLElement>('.hero-bottom-strip')
 
     gsap.set(words,       { y: '110%', rotation: 2 })
@@ -164,8 +207,36 @@ export default function Hero() {
     gsap.set(scrollHint,  { opacity: 0 })
     gsap.set(bottomStrip, { y: 48, opacity: 0 })
 
+    /* Scroll hint arrow bounce — infinite after reveal */
+    let bounceTween: gsap.core.Tween | null = null
+
+    /* Bottom strip fade on scroll out */
+    const { ScrollTrigger } = gsap as any
+    let stripST: any = null
+
     const reveal = () => {
-      const tl = gsap.timeline()
+      const tl = gsap.timeline({
+        onComplete() {
+          /* Bounce ↓ arrow */
+          if (arrowChar) {
+            bounceTween = gsap.to(arrowChar, {
+              y: 4, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: -1,
+            })
+          }
+          /* Fade bottom strip as hero scrolls away */
+          if (bottomStrip && window.ScrollTrigger) {
+            stripST = window.ScrollTrigger.create({
+              trigger: el,
+              start:   'top top',
+              end:     'bottom top',
+              scrub:   true,
+              onUpdate(self: any) {
+                gsap.set(bottomStrip, { opacity: 1 - self.progress })
+              },
+            })
+          }
+        },
+      })
       tl.to(words,       { y: '0%', rotation: 0, duration: 1.1, ease: 'expo.out', stagger: 0.08 }, 0.1)
       tl.to(topRight,    { opacity: 1, x: 0, duration: 0.7, ease: 'expo.out' }, 0.6)
       tl.to(infoItems,   { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out', stagger: 0.1 }, 0.8)
@@ -174,7 +245,11 @@ export default function Hero() {
     }
 
     _revealFn = reveal
-    return () => { _revealFn = null }
+    return () => {
+      _revealFn = null
+      bounceTween?.kill()
+      stripST?.kill()
+    }
   }, [])
 
   return (
@@ -342,7 +417,7 @@ export default function Hero() {
             textTransform: 'uppercase',
             color:         'rgba(248,245,240,0.3)',
           }}
-        >↓ Scroll</div>
+        ><span className="hero-scroll-arrow" style={{ display: 'inline-block' }}>↓</span> Scroll</div>
 
         {/* BOTTOM: tech marquee strip */}
         <div

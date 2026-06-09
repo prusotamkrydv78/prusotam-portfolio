@@ -24,6 +24,7 @@ export default function Navbar() {
   const overlayRef      = useRef<HTMLDivElement>(null)
   const navContentRef   = useRef<HTMLDivElement>(null)
   const logoRef         = useRef<HTMLAnchorElement>(null)
+  const logoLetterRefs  = useRef<(HTMLSpanElement | null)[]>([])
   const line1Ref        = useRef<HTMLSpanElement>(null)
   const line2Ref        = useRef<HTMLSpanElement>(null)
   const closeLblRef     = useRef<HTMLSpanElement>(null)
@@ -50,6 +51,18 @@ export default function Navbar() {
       { y: -80, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', delay: 1.1 }
     )
+  }, [])
+
+  /* ── hamburger hover — lines shift when menu is closed ── */
+  const handleHamburgerEnter = useCallback(() => {
+    if (isOpenRef.current) return
+    gsap.to(line1Ref.current, { x:  4, duration: 0.3, ease: 'expo.out' })
+    gsap.to(line2Ref.current, { x: -4, duration: 0.3, ease: 'expo.out', delay: 0.05 })
+  }, [])
+
+  const handleHamburgerLeave = useCallback(() => {
+    if (isOpenRef.current) return
+    gsap.to([line1Ref.current, line2Ref.current], { x: 0, duration: 0.25, ease: 'expo.out' })
   }, [])
 
   /* ── live clock ── */
@@ -262,9 +275,21 @@ export default function Navbar() {
           href="#"
           onClick={e => { e.preventDefault(); !isOpenRef.current && window.scrollTo({ top: 0, behavior: 'smooth' }) }}
           data-cursor="highlight" data-cursor-color="#111111"
-          style={{ fontFamily: 'var(--font-clash),Syne,sans-serif', fontWeight: 700, fontSize: 17, color: CLR_LIGHT, textDecoration: 'none' }}
+          style={{ fontFamily: 'var(--font-clash),Syne,sans-serif', fontWeight: 700, fontSize: 17, color: CLR_LIGHT, textDecoration: 'none', display: 'inline-flex' }}
+          onMouseEnter={() => {
+            const els = logoLetterRefs.current.filter(Boolean)
+            gsap.to(els, { y: -3, duration: 0.2, stagger: 0.03, ease: 'power2.out', yoyo: true, repeat: 1 })
+          }}
         >
-          {person.monogram}
+          {person.monogram.split('').map((ch, i) => (
+            <span
+              key={i}
+              ref={el => { logoLetterRefs.current[i] = el }}
+              style={{ display: 'inline-block', color: ch === '.' ? 'var(--accent)' : 'inherit' }}
+            >
+              {ch}
+            </span>
+          ))}
         </a>
       </nav>
 
@@ -277,6 +302,8 @@ export default function Navbar() {
         <div
           data-cursor="highlight" data-cursor-color="#111111"
           onClick={toggleMenu}
+          onMouseEnter={handleHamburgerEnter}
+          onMouseLeave={handleHamburgerLeave}
           style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '6px 8px', cursor: 'none' }}
         >
           <span ref={closeLblWrapRef} style={{ display: 'inline-block', overflow: 'hidden', maxWidth: 0, whiteSpace: 'nowrap' }}>

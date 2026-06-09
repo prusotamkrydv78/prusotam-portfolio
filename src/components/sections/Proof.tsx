@@ -1,11 +1,9 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
 
 gsap.registerPlugin(ScrollTrigger)
-
-/* ─── Data ───────────────────────────────────────────────────── */
 
 const QUOTES = [
   {
@@ -43,8 +41,6 @@ const TICKER_ITEMS = [
 ]
 const TICKER_LOOP = [...TICKER_ITEMS, ...TICKER_ITEMS]
 
-/* ─── Styles ─────────────────────────────────────────────────── */
-
 const NUM_STYLE = {
   fontFamily: 'var(--font-display), Syne, sans-serif',
   fontWeight: 700,
@@ -63,8 +59,6 @@ const BODY_MUTED = {
   color: 'rgba(248,245,240,0.5)',
 } as const
 
-/* ─── Component ───────────────────────────────────────────────── */
-
 export default function Proof() {
   const sectionRef   = useRef<HTMLElement>(null)
   const quoteRef     = useRef<HTMLDivElement>(null)
@@ -77,30 +71,35 @@ export default function Proof() {
 
   const [displayIdx, setDisplayIdx] = useState(0)
 
-  /* Headline + stats scroll animations */
   useEffect(() => {
     if (!sectionRef.current || !statsRef.current) return
 
-    const lines = sectionRef.current.querySelectorAll('[data-line]')
+    const el    = sectionRef.current
+    const lines = el.querySelectorAll('[data-line]')
+    const label = el.querySelector('.section-label')
 
     const ctx = gsap.context(() => {
+      /* Section label */
+      if (label) gsap.fromTo(label,
+        { opacity: 0, letterSpacing: '0em' },
+        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%' } }
+      )
+
       /* Clip-reveal headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
-        {
-          y: '0%', opacity: 1,
-          duration: DUR_MID, ease: EASE_OUT, stagger: 0.08,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', once: true },
-        }
+        { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.08,
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 20%' } }
       )
 
-      /* Count up: 5+ */
+      /* Count up: 5+ — reverses to 0 on scroll back */
       const o1 = { val: 0 }
       gsap.to(o1, {
         val: 5, duration: 1.3, ease: 'power2.out',
         onUpdate() { if (stat1Ref.current) stat1Ref.current.textContent = Math.floor(o1.val) + '+' },
         onComplete() { if (stat1Ref.current) stat1Ref.current.textContent = '5+' },
-        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', once: true },
+        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' },
       })
 
       /* Count up: 3 */
@@ -109,15 +108,16 @@ export default function Proof() {
         val: 3, duration: 0.9, ease: 'power2.out', delay: 0.15,
         onUpdate() { if (stat2Ref.current) stat2Ref.current.textContent = String(Math.floor(o2.val)) },
         onComplete() { if (stat2Ref.current) stat2Ref.current.textContent = '3' },
-        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', once: true },
+        scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' },
       })
 
       /* Fade in: < 1yr */
       if (stat3Ref.current) {
-        gsap.from(stat3Ref.current, {
-          opacity: 0, y: 20, duration: 0.8, ease: EASE_OUT, delay: 0.3,
-          scrollTrigger: { trigger: statsRef.current, start: 'top 82%', once: true },
-        })
+        gsap.fromTo(stat3Ref.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.8, ease: EASE_OUT, delay: 0.3,
+            scrollTrigger: { trigger: statsRef.current, start: 'top 82%', end: 'top 20%' } }
+        )
       }
     }, sectionRef)
 
@@ -137,15 +137,12 @@ export default function Proof() {
         onComplete() {
           activeIdxRef.current = next
           setDisplayIdx(next)
-          /* Wait one frame for React to update the DOM text, then animate in */
           requestAnimationFrame(() => {
             if (!quoteRef.current) { isAnimating.current = false; return }
             gsap.fromTo(quoteRef.current,
               { y: 16, opacity: 0 },
-              {
-                y: 0, opacity: 1, duration: 0.6, ease: EASE_OUT,
-                onComplete() { isAnimating.current = false },
-              }
+              { y: 0, opacity: 1, duration: 0.6, ease: EASE_OUT,
+                onComplete() { isAnimating.current = false } }
             )
           })
         },
@@ -165,7 +162,6 @@ export default function Proof() {
       style={{ background: 'var(--black)', paddingTop: 'var(--section-v)' }}
     >
       <style>{`
-        /* Progress bar fill animation */
         @keyframes proof-fill {
           from { transform: scaleX(0); }
           to   { transform: scaleX(1); }
@@ -174,8 +170,6 @@ export default function Proof() {
           animation: proof-fill 5s linear forwards;
           transform-origin: left center;
         }
-
-        /* Stats grid */
         .proof-stats {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -192,91 +186,52 @@ export default function Proof() {
         }
       `}</style>
 
-      {/* ── Main content (max-width contained) ───────────────────── */}
       <div className="container">
-
-        {/* Section label */}
         <p className="t-label section-label" style={{ color: 'var(--accent)', marginBottom: 48 }}>
           PROOF
         </p>
 
-        {/* Headline */}
         <h2 style={{ marginBottom: 72 }}>
           {['People say', 'things.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span
-                data-line
-                className="t-title"
-                style={{ display: 'block', color: 'var(--text-inverse)' }}
-              >
+              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)' }}>
                 {line}
               </span>
             </div>
           ))}
         </h2>
 
-        {/* Rule */}
         <div style={{ height: 1, background: 'var(--line-dark)', marginBottom: 56 }} />
 
-        {/* ── 1. Rotating quote ───────────────────────────────────── */}
+        {/* Rotating quote */}
         <div style={{ position: 'relative', marginBottom: 40 }}>
-          {/* Decorative large " */}
           <span
             aria-hidden="true"
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
+              position: 'absolute', top: 0, left: 0,
               fontFamily: 'var(--font-display), Syne, sans-serif',
-              fontWeight: 700,
-              fontSize: 120,
-              lineHeight: 1,
-              color: 'var(--accent)',
-              opacity: 0.25,
-              userSelect: 'none',
-              pointerEvents: 'none',
-              zIndex: 0,
+              fontWeight: 700, fontSize: 120, lineHeight: 1,
+              color: 'var(--accent)', opacity: 0.25,
+              userSelect: 'none', pointerEvents: 'none', zIndex: 0,
             }}
           >
             "
           </span>
 
-          {/* Quote content — GSAP animates this div in/out */}
           <div ref={quoteRef} style={{ paddingTop: 72, position: 'relative', zIndex: 1 }}>
-            <p
-              style={{
-                fontFamily: 'var(--font-display), Syne, sans-serif',
-                fontWeight: 600,
-                fontSize: 'clamp(22px, 3vw, 36px)',
-                lineHeight: 1.4,
-                color: 'var(--text-inverse)',
-                fontStyle: 'italic',
-                maxWidth: 700,
-                marginBottom: 28,
-              }}
-            >
+            <p style={{
+              fontFamily: 'var(--font-display), Syne, sans-serif',
+              fontWeight: 600, fontSize: 'clamp(22px, 3vw, 36px)',
+              lineHeight: 1.4, color: 'var(--text-inverse)',
+              fontStyle: 'italic', maxWidth: 700, marginBottom: 28,
+            }}>
               {q.quote}
             </p>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <span className="t-label" style={{ color: 'var(--accent)' }}>
-                {q.author}
-              </span>
-              <span
-                style={{
-                  display: 'block', width: 1, height: 12,
-                  background: 'rgba(248,245,240,0.2)',
-                  flexShrink: 0,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-                  fontSize: 11,
-                  letterSpacing: '0.04em',
-                  color: 'rgba(248,245,240,0.4)',
-                }}
-              >
+              <span className="t-label" style={{ color: 'var(--accent)' }}>{q.author}</span>
+              <span style={{ display: 'block', width: 1, height: 12, background: 'rgba(248,245,240,0.2)', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-mono), "JetBrains Mono", monospace', fontSize: 11, letterSpacing: '0.04em', color: 'rgba(248,245,240,0.4)' }}>
                 {q.meta}
               </span>
             </div>
@@ -286,124 +241,46 @@ export default function Proof() {
         {/* Progress bars */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 80 }}>
           {QUOTES.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: 2,
-                borderRadius: 1,
-                background: 'rgba(248,245,240,0.15)',
-                overflow: 'hidden',
-              }}
-            >
+            <div key={i} style={{ flex: 1, height: 2, borderRadius: 1, background: 'rgba(248,245,240,0.15)', overflow: 'hidden' }}>
               {i === displayIdx && (
-                /* key forces CSS animation to restart each time this bar becomes active */
-                <div
-                  key={`fill-${displayIdx}`}
-                  className="proof-bar-fill"
-                  style={{ width: '100%', height: '100%', background: 'var(--accent)' }}
-                />
+                <div key={`fill-${displayIdx}`} className="proof-bar-fill"
+                  style={{ width: '100%', height: '100%', background: 'var(--accent)' }} />
               )}
             </div>
           ))}
         </div>
 
-        {/* Rule */}
         <div style={{ height: 1, background: 'var(--line-dark)', marginBottom: 72 }} />
 
-        {/* ── 2. Stats ──────────────────────────────────────────── */}
+        {/* Stats */}
         <div ref={statsRef} className="proof-stats" style={{ marginBottom: 80 }}>
-
-          {/* 5+ */}
           <div className="proof-stat-first">
-            <span style={NUM_STYLE}>
-              <span ref={stat1Ref}>0+</span>
-            </span>
-            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>
-              Technologies mastered
-            </p>
-            <p style={BODY_MUTED}>
-              React · Node.js · TypeScript · ASP.NET Core · React Native
-            </p>
+            <span style={NUM_STYLE}><span ref={stat1Ref}>0+</span></span>
+            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>Technologies mastered</p>
+            <p style={BODY_MUTED}>React · Node.js · TypeScript · ASP.NET Core · React Native</p>
           </div>
 
-          {/* 3 */}
           <div className="proof-stat">
-            <span style={NUM_STYLE}>
-              <span ref={stat2Ref}>0</span>
-            </span>
-            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>
-              Live deployed projects
-            </p>
-            <p style={BODY_MUTED}>
-              ChatX · MongoX · LinkMe — production deployments on Vercel
-            </p>
+            <span style={NUM_STYLE}><span ref={stat2Ref}>0</span></span>
+            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>Live deployed projects</p>
+            <p style={BODY_MUTED}>ChatX · MongoX · LinkMe — production deployments on Vercel</p>
           </div>
 
-          {/* &lt; 1yr */}
           <div className="proof-stat">
-            <span style={NUM_STYLE}>
-              <span ref={stat3Ref}>{'< 1yr'}</span>
-            </span>
-            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>
-              Frontend to full stack
-            </p>
-            <p style={BODY_MUTED}>
-              Started coding 2023. Full stack by 2024. React Native by 2025.
-            </p>
+            <span style={NUM_STYLE}><span ref={stat3Ref}>{'< 1yr'}</span></span>
+            <p className="t-label" style={{ color: 'rgba(248,245,240,0.6)', marginBottom: 10 }}>Frontend to full stack</p>
+            <p style={BODY_MUTED}>Started coding 2023. Full stack by 2024. React Native by 2025.</p>
           </div>
-
         </div>
       </div>
 
-      {/* ── 3. Full-width marquee strip ─────────────────────────── */}
-      <div
-        style={{
-          overflow: 'hidden',
-          height: 48,
-          background: 'var(--surface-dark)',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <div
-          className="animate-ticker"
-          style={{
-            animationDuration: '35s',
-            display: 'flex',
-            alignItems: 'center',
-            whiteSpace: 'nowrap',
-          }}
-        >
+      {/* Full-width ticker strip */}
+      <div style={{ overflow: 'hidden', height: 48, background: 'var(--surface-dark)', display: 'flex', alignItems: 'center' }}>
+        <div className="animate-ticker" style={{ animationDuration: '35s', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
           {TICKER_LOOP.map((item, i) => (
-            <span
-              key={i}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                padding: '0 24px',
-              }}
-            >
-              <span
-                style={{
-                  color: 'var(--accent)',
-                  fontSize: 12,
-                  lineHeight: 1,
-                  fontFamily: 'var(--font-mono), monospace',
-                }}
-              >
-                ★
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-                  fontSize: 12,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(248,245,240,0.7)',
-                }}
-              >
+            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 24px' }}>
+              <span style={{ color: 'var(--accent)', fontSize: 12, lineHeight: 1, fontFamily: 'var(--font-mono), monospace' }}>★</span>
+              <span style={{ fontFamily: 'var(--font-mono), "JetBrains Mono", monospace', fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(248,245,240,0.7)' }}>
                 {item}
               </span>
             </span>
@@ -411,7 +288,6 @@ export default function Proof() {
         </div>
       </div>
 
-      {/* Bottom padding — mirrors section-v rhythm */}
       <div style={{ height: 'clamp(64px, 8vw, 100px)', background: 'var(--black)' }} />
     </section>
   )

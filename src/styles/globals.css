@@ -192,6 +192,21 @@ body::before {
   .section-label::after  { content: ' ]'; }
 }
 
+/* ─── Text selection — brand orange ─────────────────────────── */
+::selection {
+  background: var(--accent);
+  color:      var(--black);
+}
+
+/* ─── Section label bracket hover ───────────────────────────── */
+.section-label::before,
+.section-label::after {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+.section-label:hover::before { transform: translateX(-2px); }
+.section-label:hover::after  { transform: translateX(2px); }
+
 /* ─── Keyframes ─────────────────────────────────────────────── */
 @keyframes marquee-left {
   from { transform: translateX(0); }
