@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { gsap } from 'gsap'
+import { useFloatingPanel } from '@/hooks/useFloatingPanel'
 import type { PanelType } from '@/lib/data'
 
 /* ── Abstract canvas animations ── */
@@ -120,47 +120,17 @@ interface Props {
 }
 
 export default function ProjectRow({ index, title, year, tags, panel, github, live, isLast }: Props) {
-  const rowRef    = useRef<HTMLDivElement>(null)
-  const panelRef  = useRef<HTMLDivElement>(null)
   const [hovered, setHovered] = useState(false)
-  const txRef = useRef(0), tyRef = useRef(0)
-  const xRef  = useRef(0), yRef  = useRef(0)
-  const rafRef = useRef<number>(0)
+  const { panelRef, showPanel, hidePanel } = useFloatingPanel()
 
-  useEffect(() => {
-    const loop = () => {
-      txRef.current += (xRef.current - txRef.current) * 0.1
-      tyRef.current += (yRef.current - tyRef.current) * 0.1
-      if (panelRef.current) {
-        panelRef.current.style.transform =
-          `translate(${txRef.current - 160}px, ${tyRef.current - 110}px)`
-      }
-      rafRef.current = requestAnimationFrame(loop)
-    }
-    rafRef.current = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [])
-
-  const handleMove = (e: React.MouseEvent) => {
-    if (!rowRef.current) return
-    const r = rowRef.current.getBoundingClientRect()
-    xRef.current = e.clientX - r.left
-    yRef.current = e.clientY - r.top
-  }
-
-  const handleEnter = () => {
+  const handleEnter = (e: React.MouseEvent) => {
     setHovered(true)
-    if (panelRef.current)
-      gsap.fromTo(panelRef.current,
-        { scale: 0.85, opacity: 0 },
-        { scale: 1,    opacity: 1, duration: 0.35, ease: 'expo.out' }
-      )
+    showPanel(e)
   }
 
   const handleLeave = () => {
     setHovered(false)
-    if (panelRef.current)
-      gsap.to(panelRef.current, { scale: 1.05, opacity: 0, duration: 0.25, ease: 'expo.in' })
+    hidePanel()
   }
 
   return (
@@ -172,10 +142,8 @@ export default function ProjectRow({ index, title, year, tags, panel, github, li
       data-cursor-view
     >
       <div
-        ref={rowRef}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
-        onMouseMove={handleMove}
         style={{
           position: 'relative',
           borderBottom: isLast ? 'none' : '1px solid var(--line)',
@@ -227,24 +195,24 @@ export default function ProjectRow({ index, title, year, tags, panel, github, li
             {tags.join(' · ')}
           </span>
         </div>
+      </div>
 
-        {/* Hover panel */}
-        <div
-          ref={panelRef}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            pointerEvents: 'none',
-            opacity: 0,
-            zIndex: 50,
-            borderRadius: 4,
-            overflow: 'hidden',
-            boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
-          }}
-        >
-          <PanelCanvas type={panel} />
-        </div>
+      {/* Floating panel — fixed, tracks cursor globally */}
+      <div
+        ref={panelRef}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
+          visibility: 'hidden',
+          zIndex: 9999,
+          borderRadius: 4,
+          overflow: 'hidden',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.35)',
+        }}
+      >
+        <PanelCanvas type={panel} />
       </div>
     </a>
   )
