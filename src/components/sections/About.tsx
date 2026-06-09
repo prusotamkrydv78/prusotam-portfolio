@@ -99,7 +99,7 @@ export default function About() {
             <div style={{ marginBottom: 32 }}>
               {bioLines.map((line, i) => (
                 <div key={i} style={{ overflow: 'hidden' }}>
-                  <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(17,17,17,0.28)' : 'var(--text-primary)', lineHeight: 1.05 }}>
+                  <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)', lineHeight: 1.05 }}>
                     {line}
                   </span>
                 </div>

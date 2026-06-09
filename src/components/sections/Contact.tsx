@@ -101,7 +101,7 @@ export default function Contact() {
               <div style={{ marginBottom: 32 }}>
                 {['Open to', 'opportunities.'].map((line, i) => (
                   <div key={i} style={{ overflow: 'hidden' }}>
-                    <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(248,245,240,0.28)' : 'var(--text-inverse)', lineHeight: 1.05 }}>
+                    <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)', lineHeight: 1.05 }}>
                       {line}
                     </span>
                   </div>

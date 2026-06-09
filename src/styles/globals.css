@@ -38,13 +38,9 @@
 
 /* ─── Tailwind bridge ────────────────────────────────────────── */
 @theme inline {
-  --font-display: var(--fraunces);
-  --font-body:    var(--jakarta);
-  --font-label:   var(--space-grotesk);
+  --font-display: var(--font-clash);
+  --font-body:    var(--font-cabinet);
   --font-mono:    var(--font-jb-mono);
-  /* Backwards-compat aliases — existing inline var(--font-clash) refs auto-resolve */
-  --font-clash:   var(--fraunces);
-  --font-cabinet: var(--jakarta);
 }
 
 /* ─── Base ───────────────────────────────────────────────────── */
@@ -62,7 +58,7 @@
   body {
     background-color: var(--white);
     color: var(--text-primary);
-    font-family: var(--jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-family: var(--font-cabinet), 'Plus Jakarta Sans', system-ui, sans-serif;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -96,52 +92,30 @@ body::before {
 
 /* ─── Typography scale ───────────────────────────────────────── */
 @layer components {
-  /* Hero / full-bleed display */
   .t-display {
-    font-family: var(--font-display), 'Georgia', serif;
-    font-weight: 900;
-    font-style: italic;
-    font-variation-settings: 'WONK' 1, 'SOFT' 0, 'opsz' 144;
+    font-family: var(--font-display), 'Syne', sans-serif;
+    font-weight: 700;
     font-size: clamp(72px, 10vw, 148px);
     line-height: 0.92;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.04em;
   }
 
-  /* Section headlines — base (heavy by default) */
   .t-title {
-    font-family: var(--font-display), 'Georgia', serif;
-    font-weight: 900;
-    font-style: italic;
-    font-variation-settings: 'WONK' 0, 'SOFT' 0, 'opsz' 72;
+    font-family: var(--font-display), 'Syne', sans-serif;
+    font-weight: 700;
     font-size: clamp(40px, 5.5vw, 88px);
     line-height: 1.0;
     letter-spacing: -0.03em;
   }
 
-  /* Weight-contrast modifiers — the editorial system */
-  .t-title--light {
-    font-weight: 300;
-    font-style: italic;
-    font-variation-settings: 'WONK' 0, 'SOFT' 50, 'opsz' 72;
-  }
-  .t-title--heavy {
-    font-weight: 900;
-    font-style: italic;
-    font-variation-settings: 'WONK' 1, 'SOFT' 0, 'opsz' 72;
-  }
-
-  /* Card / project headings */
   .t-heading {
-    font-family: var(--font-display), 'Georgia', serif;
-    font-weight: 700;
-    font-style: italic;
-    font-variation-settings: 'WONK' 0, 'SOFT' 20, 'opsz' 36;
-    font-size: clamp(22px, 2.5vw, 36px);
+    font-family: var(--font-display), 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: clamp(24px, 3vw, 40px);
     line-height: 1.1;
     letter-spacing: -0.02em;
   }
 
-  /* Intro / large body */
   .t-lead {
     font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 400;
@@ -149,31 +123,27 @@ body::before {
     line-height: 1.65;
   }
 
-  /* Standard paragraphs */
   .t-body {
     font-family: var(--font-body), 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 400;
     font-size: 16px;
-    line-height: 1.72;
+    line-height: 1.7;
   }
 
-  /* Section markers / tags / metadata */
   .t-label {
-    font-family: var(--font-label), 'Space Grotesk', sans-serif;
-    font-weight: 500;
+    font-family: var(--font-mono), 'JetBrains Mono', monospace;
+    font-weight: 400;
     font-size: 11px;
     line-height: 1;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
   }
 
-  /* Secondary metadata */
   .t-meta {
-    font-family: var(--font-label), 'Space Grotesk', sans-serif;
-    font-weight: 300;
-    font-size: 12px;
+    font-family: var(--font-mono), 'JetBrains Mono', monospace;
+    font-weight: 400;
+    font-size: 13px;
     line-height: 1.5;
-    letter-spacing: 0.06em;
   }
 
   /* Layout */
@@ -243,7 +213,7 @@ body::before {
   to   { transform: translateX(-50%); }
 }
 
-.animate-ticker { animation: marquee-left 18s linear infinite; }
+.animate-ticker { animation: marquee-left 30s linear infinite; }
 .animate-ticker:hover { animation-play-state: paused; }
 
 /* ─── Contact grid bg ────────────────────────────────────────── */

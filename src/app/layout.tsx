@@ -1,43 +1,38 @@
 import type { Metadata } from 'next'
-import { Fraunces, Space_Grotesk, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
+import { Syne, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
 import '@/styles/globals.css'
 import ClientLayout from '@/components/providers/ClientLayout'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Preloader from '@/components/layout/Preloader'
 
-/* Display / headlines — Fraunces variable serif */
-const fraunces = Fraunces({
+/*
+  Fonts:
+  --font-clash   → Syne (Google fallback until Clash Display .woff2 are placed in /public/fonts/)
+  --font-cabinet → Plus Jakarta Sans (fallback until Cabinet Grotesk .woff2 available)
+  --font-jb-mono → JetBrains Mono (Google Fonts — permanent)
+
+  To upgrade to the real fonts, download from fontshare.com and replace with:
+  import localFont from 'next/font/local'
+  const clash   = localFont({ src: '../public/fonts/ClashDisplay-Bold.woff2', ... })
+  const cabinet = localFont({ src: '../public/fonts/CabinetGrotesk-Medium.woff2', ... })
+*/
+const clash = Syne({
   subsets: ['latin'],
-  axes: ['SOFT', 'WONK', 'opsz'],
-  weight: 'variable',
-  style: ['normal', 'italic'],
-  variable: '--fraunces',
-  display: 'swap',
+  weight: ['600', '700'],
+  variable: '--font-clash',
 })
 
-/* Body — Plus Jakarta Sans */
-const jakarta = Plus_Jakarta_Sans({
+const cabinet = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--jakarta',
-  display: 'swap',
+  weight: ['400', '500'],
+  variable: '--font-cabinet',
 })
 
-/* Labels / metadata — Space Grotesk */
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--space-grotesk',
-  display: 'swap',
-})
-
-/* Code contexts only — JetBrains Mono */
 const mono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-jb-mono',
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -61,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${jakarta.variable} ${spaceGrotesk.variable} ${mono.variable}`}
+      className={`${clash.variable} ${cabinet.variable} ${mono.variable}`}
     >
       <body>
         <Preloader />

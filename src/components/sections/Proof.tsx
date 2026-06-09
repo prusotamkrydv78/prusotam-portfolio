@@ -194,7 +194,7 @@ export default function Proof() {
         <h2 style={{ marginBottom: 72 }}>
           {['People say', 'things.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span data-line className={`t-title ${i === 0 ? 't-title--light' : 't-title--heavy'}`} style={{ display: 'block', color: i === 0 ? 'rgba(248,245,240,0.28)' : 'var(--text-inverse)' }}>
+              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)' }}>
                 {line}
               </span>
             </div>
