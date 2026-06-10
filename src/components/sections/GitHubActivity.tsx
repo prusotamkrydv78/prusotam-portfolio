@@ -70,18 +70,25 @@ export default function GitHubActivity() {
       /* Section label */
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
-        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
+        { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 60%', scrub: 1 } }
       )
 
       /* Headline */
       gsap.fromTo(lines,
         { y: '105%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
+        { y: '0%', opacity: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 82%', end: 'top 60%', scrub: 1 } }
       )
 
-      /* Stat counters — reverse counts down */
+      /* Counters + heatmap on one timeline so they end at the exact same scroll position */
+      const CELL_DUR = 0.5
+      const STAGGER  = 1.0
+
+      const heatTl = gsap.timeline({
+        scrollTrigger: { trigger: '.heatmap-wrap', start: 'top 85%', end: 'top 60%', scrub: 1 },
+      })
+
       const counters = [
         { ref: stat1Ref, target: person.stats.contributions, suffix: '+' },
         { ref: stat2Ref, target: person.stats.repos,         suffix: '+' },
@@ -90,23 +97,24 @@ export default function GitHubActivity() {
       counters.forEach(({ ref, target, suffix }) => {
         if (!ref.current) return
         const obj = { val: 0 }
-        gsap.to(obj, {
-          val: target, duration: 1.6, ease: 'power2.out',
+        heatTl.to(obj, {
+          val: target,
+          duration: STAGGER + CELL_DUR,
+          ease: 'none',
           onUpdate() { if (ref.current) ref.current.textContent = Math.floor(obj.val) + suffix },
           onComplete() { if (ref.current) ref.current.textContent = target + suffix },
-          scrollTrigger: { trigger: el, start: 'top 68%', end: 'top 15%', scrub: 1 },
-        })
+        }, 0)
       })
 
       /* Heatmap cells — opacity + scale entrance */
-      gsap.fromTo(cells,
+      heatTl.fromTo(cells,
         { opacity: 0, scale: 0.5 },
         {
           opacity: 1, scale: 1,
-          duration: 0.25, ease: 'elastic.out(1, 0.8)',
-          stagger: { from: 'start', amount: 1.2 },
-          scrollTrigger: { trigger: '.heatmap-wrap', start: 'top 82%', end: 'top 15%', scrub: 1 },
-        }
+          ease: EASE_OUT,
+          stagger: { from: 'start', amount: STAGGER },
+          duration: CELL_DUR,
+        }, 0
       )
     }, sectionRef)
 
@@ -129,7 +137,8 @@ export default function GitHubActivity() {
         @media (max-width: 900px) {
           .github-layout { grid-template-columns: 1fr; gap: 64px 0; }
         }
-        .heatmap-wrap { overflow-x: auto; }
+        .heatmap-wrap { overflow-x: auto; scrollbar-width: none; }
+        .heatmap-wrap::-webkit-scrollbar { display: none; }
         .heat-cell:hover { transform: scale(1.35); z-index: 2; position: relative; }
         .heat-cell { transition: transform 0.15s ease; will-change: transform, opacity; }
         .github-link { transition: color 0.2s ease; }
@@ -183,6 +192,8 @@ export default function GitHubActivity() {
             <a
               href={person.githubUrl}
               target="_blank" rel="noopener noreferrer"
+              data-cursor="highlight"
+              data-cursor-color="#111111"
               className="t-label underline-sweep github-link"
               style={{ color: 'var(--text-primary)', textDecoration: 'none' }}
             >

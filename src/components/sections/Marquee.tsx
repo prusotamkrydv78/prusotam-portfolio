@@ -6,7 +6,7 @@ import { skills } from '@/lib/data'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const ticker = [...skills, ...skills]
+const ticker = [...skills, ...skills, ...skills, ...skills]
 
 export default function Ticker() {
   const wrapRef = useRef<HTMLDivElement>(null)

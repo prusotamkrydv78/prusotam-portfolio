@@ -37,26 +37,68 @@ export default function Services() {
   const gridRef    = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!sectionRef.current) return
-    const lines = sectionRef.current.querySelectorAll('[data-line]')
-    const cards = sectionRef.current.querySelectorAll('[data-card]')
+    const el = sectionRef.current
+    if (!el) return
+
+    const label  = el.querySelector<HTMLElement>('.services-label')
+    const lines  = el.querySelectorAll('[data-line]')
+    const idxs   = el.querySelectorAll<HTMLElement>('[data-svc-idx]')
+    const titles = el.querySelectorAll<HTMLElement>('[data-svc-title]')
+    const bodies = el.querySelectorAll<HTMLElement>('[data-svc-body]')
+    const tags   = el.querySelectorAll<HTMLElement>('[data-svc-tag]')
+    const dividers = el.querySelectorAll<HTMLElement>('[data-svc-divider]')
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        lines,
-        { y: '105%', opacity: 0 },
-        {
-          y: '0%', opacity: 1,
-          duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', end: 'top 20%', scrub: 1 },
-        }
+      /* ── Section label ── */
+      if (label) {
+        gsap.fromTo(label,
+          { opacity: 0, letterSpacing: '0em' },
+          { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+            scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 50%', scrub: 1 } }
+        )
+      }
+
+      /* ── Headline clip-reveal ── */
+      gsap.fromTo(lines,
+        { y: '108%', opacity: 0 },
+        { y: '0%', opacity: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 20%', scrub: 1 } }
       )
 
-      gsap.from(cards, {
-        opacity: 0, y: 28,
-        duration: DUR_MID, ease: EASE_OUT, stagger: 0.08,
-        scrollTrigger: { trigger: gridRef.current, start: 'top 82%', end: 'top 20%', scrub: 1 },
-      })
+      /* ── Top border lines sweep in ── */
+      gsap.fromTo(dividers,
+        { scaleX: 0 },
+        { scaleX: 1, ease: EASE_OUT, stagger: 0.1, transformOrigin: 'left center',
+          scrollTrigger: { trigger: gridRef.current, start: 'top 85%', end: 'top 40%', scrub: 1 } }
+      )
+
+      /* ── Card index numbers ── */
+      gsap.fromTo(idxs,
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: gridRef.current, start: 'top 82%', end: 'top 35%', scrub: 1 } }
+      )
+
+      /* ── Card titles — clip up from overflow:hidden ── */
+      gsap.fromTo(titles,
+        { clipPath: 'inset(0 0 100% 0)', y: 16 },
+        { clipPath: 'inset(0 0 0% 0)', y: 0, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: gridRef.current, start: 'top 80%', end: 'top 30%', scrub: 1 } }
+      )
+
+      /* ── Card body copy ── */
+      gsap.fromTo(bodies,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: gridRef.current, start: 'top 75%', end: 'top 25%', scrub: 1 } }
+      )
+
+      /* ── Tags — staggered pop ── */
+      gsap.fromTo(tags,
+        { opacity: 0, y: 8, scale: 0.85 },
+        { opacity: 1, y: 0, scale: 1, ease: EASE_OUT, stagger: 0.04,
+          scrollTrigger: { trigger: gridRef.current, start: 'top 72%', end: 'top 20%', scrub: 1 } }
+      )
     }, sectionRef)
 
     return () => ctx.revert()
@@ -66,11 +108,7 @@ export default function Services() {
     <section
       id="services"
       ref={sectionRef}
-      style={{
-        background: 'var(--surface-1)',
-        paddingTop: 'var(--section-v)',
-        paddingBottom: 'var(--section-v)',
-      }}
+      style={{ background: 'var(--surface-1)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' }}
     >
       <style>{`
         .services-grid {
@@ -88,18 +126,17 @@ export default function Services() {
       `}</style>
 
       <div className="container">
-        <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 48 }}>
+        <p
+          className="t-label section-label services-label"
+          style={{ color: 'var(--text-secondary)', marginBottom: 48 }}
+        >
           SERVICES
         </p>
 
         <h2 style={{ marginBottom: 64 }}>
           {['What I', 'can do.'].map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
-              <span
-                data-line
-                className="t-title"
-                style={{ display: 'block', color: 'var(--text-primary)' }}
-              >
+              <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)' }}>
                 {line}
               </span>
             </div>
@@ -114,29 +151,45 @@ export default function Services() {
               className="services-card"
               style={{
                 padding: '40px 32px',
-                borderTop: '1px solid var(--line)',
                 borderRight: i < SERVICES.length - 1 ? '1px solid var(--line)' : undefined,
+                position: 'relative',
               }}
             >
+              {/* Animated top border */}
+              <div
+                data-svc-divider
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'var(--line)', transformOrigin: 'left center' }}
+              />
+
+              {/* Index */}
               <span
+                data-svc-idx
                 className="t-meta"
                 style={{ color: 'var(--accent)', display: 'block', marginBottom: 16 }}
               >
                 {svc.index}
               </span>
-              <h3
-                style={{
-                  fontFamily: 'var(--font-display), Syne, sans-serif',
-                  fontWeight: 600,
-                  fontSize: 22,
-                  lineHeight: 1.2,
-                  color: 'var(--text-primary)',
-                  marginBottom: 12,
-                }}
-              >
-                {svc.title}
-              </h3>
+
+              {/* Title */}
+              <div style={{ overflow: 'hidden', marginBottom: 12 }}>
+                <h3
+                  data-svc-title
+                  style={{
+                    fontFamily: 'var(--font-display), Syne, sans-serif',
+                    fontWeight: 600,
+                    fontSize: 22,
+                    lineHeight: 1.2,
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                  }}
+                >
+                  {svc.title}
+                </h3>
+              </div>
+
+              {/* Body */}
               <p
+                data-svc-body
                 style={{
                   fontFamily: 'var(--font-body), "Plus Jakarta Sans", sans-serif',
                   fontSize: 15,
@@ -147,16 +200,20 @@ export default function Services() {
               >
                 {svc.body}
               </p>
+
+              {/* Tags */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {svc.tags.map((tag) => (
                   <span
                     key={tag}
+                    data-svc-tag
                     className="t-label"
                     style={{
                       background: 'var(--black)',
                       color: 'var(--text-inverse)',
                       padding: '4px 8px',
                       borderRadius: 2,
+                      display: 'inline-block',
                     }}
                   >
                     {tag}

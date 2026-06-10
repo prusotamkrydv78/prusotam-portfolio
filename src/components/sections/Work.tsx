@@ -448,12 +448,13 @@ export default function Work() {
             target="_blank"
             rel="noopener noreferrer"
             data-cursor="highlight"
+            data-cursor-color="#111111"
             className="underline-sweep"
             style={{
               fontFamily:     'var(--font-mono), "JetBrains Mono", monospace',
               fontSize:        11,
               letterSpacing:   '0.15em',
-              color:           'rgba(17,17,17,0.45)',
+              color:           'var(--accent)',
               textDecoration:  'none',
               whiteSpace:     'nowrap',
             }}

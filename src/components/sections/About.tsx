@@ -17,70 +17,107 @@ const currentlyBuilding = projects.map((p) => p.title)
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
+  const rightRef   = useRef<HTMLDivElement>(null)
   const statRefs   = useRef<(HTMLSpanElement | null)[]>([])
 
   useEffect(() => {
     if (!sectionRef.current) return
     const el    = sectionRef.current
-    const lines  = el.querySelectorAll('[data-line]')
-    const label  = el.querySelector('.section-label')
-    const extras = el.querySelectorAll('[data-extra]')
-    const pills  = el.querySelectorAll('.tech-pill')
-    const boxes  = el.querySelectorAll('.stat-box')
+    const right = rightRef.current
+
+    const label      = el.querySelector<HTMLElement>('.section-label')
+    const lines      = el.querySelectorAll<HTMLElement>('[data-line]')
+    const descWords  = el.querySelectorAll<HTMLElement>('[data-desc-word]')
+    const links      = el.querySelectorAll<HTMLElement>('[data-link]')
+    const boxes      = right?.querySelectorAll<HTMLElement>('.stat-box') ?? []
+    const statLabels = right?.querySelectorAll<HTMLElement>('[data-stat-label]') ?? []
+    const buildLabel = right?.querySelector<HTMLElement>('[data-build-label]')
+    const pills      = right?.querySelectorAll<HTMLElement>('.tech-pill') ?? []
 
     const ctx = gsap.context(() => {
-      /* Section label letter-spacing expand */
+
+      /* ── Section label: letterSpacing expand ── */
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
-        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
+        { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 58%', scrub: 1 } }
       )
 
-      /* Bio headline clip reveal */
+      /* ── Bio headline: each line clips up from overflow:hidden ── */
       gsap.fromTo(lines,
-        { y: '105%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.12,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
+        { y: '108%' },
+        { y: '0%', ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 82%', end: 'center 72%', scrub: 1 } }
       )
 
-      /* Extra items */
-      if (extras.length) gsap.fromTo(extras,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 15%', scrub: 1 } }
+      /* ── Description: word-by-word cascade up ── */
+      if (descWords.length) gsap.fromTo(descWords,
+        { y: '110%', opacity: 0 },
+        { y: '0%', opacity: 1, ease: EASE_OUT, stagger: 0.018,
+          scrollTrigger: { trigger: el, start: 'top 76%', end: 'center 64%', scrub: 1 } }
       )
 
-      /* Stat boxes entrance */
+      /* ── Links: slide in from left ── */
+      if (links.length) gsap.fromTo(links,
+        { x: -20, opacity: 0 },
+        { x: 0, opacity: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 70%', end: 'center 60%', scrub: 1 } }
+      )
+
+      /* ── Stat boxes: rise + scale in ── */
       if (boxes.length) gsap.fromTo(boxes,
-        { scale: 0.9, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.6, ease: 'elastic.out(1, 0.75)', stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 72%', end: 'top 15%', scrub: 1 } }
+        { y: 28, opacity: 0, scale: 0.93 },
+        { y: 0, opacity: 1, scale: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: right, start: 'top 85%', end: 'center 68%', scrub: 1 } }
       )
 
-      /* Tech pill entrance wave */
-      if (pills.length) gsap.fromTo(pills,
-        { scale: 0.8, opacity: 0, y: 4 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.8)', stagger: 0.04,
-          scrollTrigger: { trigger: el, start: 'top 70%', end: 'top 15%', scrub: 1 } }
-      )
-
-      /* Stats count-up (reverses on scroll up) */
+      /* ── Stat numbers: scale pop + count-up ── */
       stats.forEach((s, i) => {
-        const el2 = statRefs.current[i]
-        if (!el2) return
+        const numEl = statRefs.current[i]
+        if (!numEl) return
         const obj = { val: 0 }
+
+        gsap.fromTo(numEl,
+          { scale: 1.45, opacity: 0 },
+          { scale: 1, opacity: 1, ease: EASE_OUT,
+            scrollTrigger: { trigger: right, start: 'top 85%', end: 'center 68%', scrub: 1 } }
+        )
+
         gsap.to(obj, {
-          val: s.value,
-          duration: 1.4, ease: 'power2.out',
-          onUpdate() { el2.textContent = Math.round(obj.val) + s.suffix },
-          onComplete() { el2.textContent = s.value + s.suffix },
-          scrollTrigger: { trigger: el2, start: 'top 88%', end: 'top 20%', scrub: 1 },
+          val: s.value, ease: 'none',
+          onUpdate() { numEl.textContent = Math.round(obj.val) + s.suffix },
+          onComplete() { numEl.textContent = s.value + s.suffix },
+          scrollTrigger: { trigger: right, start: 'top 65%', end: 'center 65%', scrub: 1 },
         })
       })
+
+      /* ── Stat labels: fade up after boxes ── */
+      if (statLabels.length) gsap.fromTo(statLabels,
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, ease: EASE_OUT, stagger: 0.08,
+          scrollTrigger: { trigger: right, start: 'top 80%', end: 'center 65%', scrub: 1 } }
+      )
+
+      /* ── "Currently Building" label: slide + letterSpacing ── */
+      if (buildLabel) gsap.fromTo(buildLabel,
+        { opacity: 0, x: -14, letterSpacing: '0em' },
+        { opacity: 1, x: 0, letterSpacing: '0.1em', ease: EASE_OUT,
+          scrollTrigger: { trigger: right, start: 'top 75%', end: 'center 62%', scrub: 1 } }
+      )
+
+      /* ── Tech pills: stagger pop from below ── */
+      if (pills.length) gsap.fromTo(pills,
+        { opacity: 0, y: 14, scale: 0.82 },
+        { opacity: 1, y: 0, scale: 1, ease: EASE_OUT, stagger: 0.06,
+          scrollTrigger: { trigger: right, start: 'top 70%', end: 'center 58%', scrub: 1 } }
+      )
+
     }, sectionRef)
 
     return () => ctx.revert()
   }, [])
+
+  const descText = `${person.role} based in ${person.location}. Focused on shipping full-stack products — web, mobile, and real-time.`
 
   return (
     <section
@@ -90,44 +127,75 @@ export default function About() {
     >
       <div className="container">
         <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 48 }}>
-          ABOUT
+          [ABOUT]
         </p>
 
         <div className="grid-12" style={{ alignItems: 'start' }}>
-          {/* Left — col 1-5 */}
+
+          {/* ── Left col 1–5 ── */}
           <div style={{ gridColumn: '1 / 6' }}>
+
+            {/* Bio headline */}
             <div style={{ marginBottom: 32 }}>
               {bioLines.map((line, i) => (
                 <div key={i} style={{ overflow: 'hidden' }}>
-                  <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-primary)', lineHeight: 1.05 }}>
+                  <span
+                    data-line
+                    className="t-title"
+                    style={{ display: 'block', color: 'var(--text-primary)', lineHeight: 1.05 }}
+                  >
                     {line}
                   </span>
                 </div>
               ))}
             </div>
 
-            <p data-extra style={{ fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif', fontSize: 16, lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 440, marginBottom: 32 }}>
-              {person.role} based in {person.location}. Focused on shipping full-stack products — web, mobile, and real-time.
+            {/* Description — word-by-word reveal */}
+            <p style={{
+              fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif',
+              fontSize: 16, lineHeight: 1.75,
+              color: 'var(--text-secondary)', maxWidth: 440, marginBottom: 32,
+            }}>
+              {descText.split(' ').map((word, i) => (
+                <span key={i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
+                  <span
+                    data-desc-word=""
+                    style={{ display: 'inline-block', marginRight: '0.28em' }}
+                  >
+                    {word}
+                  </span>
+                </span>
+              ))}
             </p>
 
-            <div data-extra style={{ display: 'flex', gap: 16 }}>
-              <a href={person.githubUrl} target="_blank" rel="noopener noreferrer"
+            {/* Links */}
+            <div style={{ display: 'flex', gap: 16 }}>
+              <a
+                data-link
+                data-cursor="highlight"
+                data-cursor-color="#111111"
+                href={person.githubUrl} target="_blank" rel="noopener noreferrer"
                 className="t-label underline-sweep"
                 style={{ color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.2s ease' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
-              >↗ GitHub</a>
-              <a href={`mailto:${person.email}`}
+              >↗ GITHUB</a>
+              <a
+                data-link
+                data-cursor="highlight"
+                data-cursor-color="#111111"
+                href={`mailto:${person.email}`}
                 className="t-label underline-sweep"
                 style={{ color: 'var(--text-primary)', textDecoration: 'none', transition: 'color 0.2s ease' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
-              >↗ Email</a>
+              >↗ EMAIL</a>
             </div>
           </div>
 
-          {/* Right — col 7-12 */}
-          <div style={{ gridColumn: '7 / 13' }}>
+          {/* ── Right col 7–12 ── */}
+          <div ref={rightRef} style={{ gridColumn: '7 / 13' }}>
+
             {/* Stats grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
               {stats.map((s, i) => (
@@ -146,17 +214,31 @@ export default function About() {
                 >
                   <span
                     ref={el => { statRefs.current[i] = el }}
-                    style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 700, fontSize: 'clamp(28px,3vw,40px)', lineHeight: 1, color: 'var(--text-primary)', display: 'block', marginBottom: 6 }}
+                    style={{
+                      fontFamily: 'var(--font-display),Syne,sans-serif',
+                      fontWeight: 700, fontSize: 'clamp(28px,3vw,40px)',
+                      lineHeight: 1, color: 'var(--text-primary)',
+                      display: 'block', marginBottom: 6,
+                      transformOrigin: 'left center',
+                    }}
                   >
                     0{s.suffix}
                   </span>
-                  <span className="t-label" style={{ color: 'var(--text-secondary)' }}>{s.label}</span>
+                  <span data-stat-label className="t-label" style={{ color: 'var(--text-secondary)' }}>
+                    {s.label}
+                  </span>
                 </div>
               ))}
             </div>
 
-            {/* Currently building */}
-            <p className="t-label" style={{ color: 'var(--text-secondary)', marginBottom: 12 }}>CURRENTLY BUILDING</p>
+            {/* Currently Building */}
+            <p
+              data-build-label
+              className="t-label"
+              style={{ color: 'var(--text-secondary)', marginBottom: 12 }}
+            >
+              CURRENTLY BUILDING
+            </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {currentlyBuilding.map((name) => (
                 <span
@@ -168,14 +250,15 @@ export default function About() {
                     transition: 'background 0.2s ease, color 0.2s ease',
                     cursor: 'default',
                   }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--accent)'; el.style.color = 'var(--black)' }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = 'var(--black)'; el.style.color = 'var(--text-inverse)' }}
+                  onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.background = 'var(--accent)'; t.style.color = 'var(--black)' }}
+                  onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.background = 'var(--black)'; t.style.color = 'var(--text-inverse)' }}
                 >
                   {name}
                 </span>
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </section>

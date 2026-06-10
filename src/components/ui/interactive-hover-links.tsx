@@ -14,22 +14,27 @@ interface InteractiveHoverLinksProps {
   links: HoverLinkItem[]
 }
 
+const EASE_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]
+const SPRING = { type: 'spring', stiffness: 300, damping: 30 } as const
+
 export function InteractiveHoverLinks({ links }: InteractiveHoverLinksProps) {
   return (
     <div style={{ width: '100%' }}>
-      {links.map((link) => (
-        <HoverLink key={link.heading} {...link} />
+      {links.map((link, i) => (
+        <HoverLink key={link.heading} {...link} index={i} />
       ))}
     </div>
   )
 }
 
-function HoverLink({ heading, subheading, href }: HoverLinkItem) {
+function HoverLink({ heading, subheading, href, index }: HoverLinkItem & { index: number }) {
   return (
     <motion.a
       href={href}
-      initial="initial"
-      whileHover="whileHover"
+      initial="hidden"
+      whileInView="visible"
+      whileHover="hover"
+      viewport={{ once: true, margin: '-80px' }}
       style={{
         position:       'relative',
         display:        'flex',
@@ -42,14 +47,14 @@ function HoverLink({ heading, subheading, href }: HoverLinkItem) {
         cursor:         'pointer',
       }}
     >
-      {/* Left — heading letters + subheading */}
       <div>
+        {/* Heading — chars rise up on scroll, shift right on hover */}
         <motion.span
           variants={{
-            initial:    { x: 0 },
-            whileHover: { x: -16 },
+            hidden:   {},
+            visible:  { transition: { staggerChildren: 0.038, delayChildren: index * 0.1 } },
+            hover:    { x: -16, transition: SPRING },
           }}
-          transition={{ type: 'spring', staggerChildren: 0.045, delayChildren: 0.15 }}
           style={{
             display:       'block',
             fontFamily:    'var(--font-clash), Syne, sans-serif',
@@ -62,14 +67,14 @@ function HoverLink({ heading, subheading, href }: HoverLinkItem) {
           }}
           className="ihl-heading"
         >
-          {heading.split('').map((l, i) => (
+          {heading.split('').map((l, ci) => (
             <motion.span
-              key={i}
+              key={ci}
               variants={{
-                initial:    { x: 0 },
-                whileHover: { x: 16 },
+                hidden:   { y: 28, opacity: 0 },
+                visible:  { y: 0,  opacity: 1, transition: { ease: EASE_EXPO, duration: 0.65 } },
+                hover:    { x: 16, transition: SPRING },
               }}
-              transition={{ type: 'spring' }}
               style={{ display: 'inline-block' }}
             >
               {l === ' ' ? ' ' : l}
@@ -77,10 +82,12 @@ function HoverLink({ heading, subheading, href }: HoverLinkItem) {
           ))}
         </motion.span>
 
+        {/* Subheading — fades up after chars */}
         <motion.span
           variants={{
-            initial:    { opacity: 0.45 },
-            whileHover: { opacity: 1 },
+            hidden:   { opacity: 0, y: 10 },
+            visible:  { opacity: 0.45, y: 0, transition: { ease: EASE_EXPO, duration: 0.5, delay: index * 0.1 + 0.32 } },
+            hover:    { opacity: 1 },
           }}
           style={{
             marginTop:  8,
@@ -94,14 +101,14 @@ function HoverLink({ heading, subheading, href }: HoverLinkItem) {
         </motion.span>
       </div>
 
-      {/* Right — arrow slides in on hover */}
+      {/* Arrow — slides in on hover only */}
       <div style={{ overflow: 'hidden', flexShrink: 0 }}>
         <motion.div
           variants={{
-            initial:    { x: '100%', opacity: 0 },
-            whileHover: { x: '0%',   opacity: 1 },
+            hidden:   { x: '100%', opacity: 0 },
+            visible:  { x: '100%', opacity: 0 },
+            hover:    { x: '0%',   opacity: 1, transition: SPRING },
           }}
-          transition={{ type: 'spring' }}
           style={{ padding: 16 }}
         >
           <ArrowRight size={32} color="var(--accent)" />

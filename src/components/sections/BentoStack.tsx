@@ -48,36 +48,90 @@ export default function BentoStack() {
 
   useEffect(() => {
     if (!sectionRef.current) return
-    const el    = sectionRef.current
-    const lines  = el.querySelectorAll('[data-line]')
-    const label  = el.querySelector('.section-label')
-    const cells  = el.querySelectorAll('.bento-cell')
+    const el     = sectionRef.current
+    const gridEl = el.querySelector<HTMLElement>('.bento-grid')
+    const lines  = el.querySelectorAll<HTMLElement>('[data-line]')
+    const label  = el.querySelector<HTMLElement>('.section-label')
+
+    const cellsA = el.querySelectorAll<HTMLElement>('.bento-cell-a')
+    const cellsB = el.querySelectorAll<HTMLElement>('.bento-cell-b')
+    const cellsC = el.querySelectorAll<HTMLElement>('.bento-cell-c')
+    const cellsD = el.querySelectorAll<HTMLElement>('.bento-cell-d')
 
     const ctx = gsap.context(() => {
-      /* Section label */
+
+      /* ── Section label ── */
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
-        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
+        { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 58%', scrub: 1 } }
       )
 
-      /* Headline */
+      /* ── Headline: solid-block clip wipe ── */
       gsap.fromTo(lines,
-        { y: '105%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: 0.9, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
+        { clipPath: 'inset(0 0 100% 0)', y: 10 },
+        { clipPath: 'inset(0 0 0% 0)', y: 0, ease: EASE_OUT, stagger: 0.14,
+          scrollTrigger: { trigger: el, start: 'top 82%', end: 'center 72%', scrub: 1 } }
       )
 
-      /* Wave entrance — cells enter in grid order */
-      gsap.fromTo(cells,
-        { opacity: 0, scale: 0.94, y: 20 },
-        {
-          opacity: 1, scale: 1, y: 0,
-          duration: 0.65, ease: EASE_OUT,
-          stagger: { from: 'start', each: 0.06, grid: 'auto' },
-          scrollTrigger: { trigger: '.bento-grid', start: 'top 80%', end: 'top 15%', scrub: 1 },
-        }
+      /* ── Type A: curtain rise (clip from top → reveals upward) ── */
+      gsap.fromTo(cellsA,
+        { clipPath: 'inset(100% 0 0 0)' },
+        { clipPath: 'inset(0% 0 0 0)', ease: 'power3.out', stagger: 0.22,
+          scrollTrigger: { trigger: gridEl, start: 'top 85%', end: 'center 68%', scrub: 1 } }
       )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-a .cell-label'),
+        { opacity: 0, letterSpacing: '0em' },
+        { opacity: 1, letterSpacing: '0.12em', ease: EASE_OUT, stagger: 0.22,
+          scrollTrigger: { trigger: gridEl, start: 'top 78%', end: 'center 64%', scrub: 1 } }
+      )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-a .cell-name'),
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, ease: EASE_OUT, stagger: 0.22,
+          scrollTrigger: { trigger: gridEl, start: 'top 75%', end: 'center 62%', scrub: 1 } }
+      )
+
+      /* ── Type B: skewed slide from right ── */
+      gsap.fromTo(cellsB,
+        { x: 70, skewX: 3, opacity: 0 },
+        { x: 0, skewX: 0, opacity: 1, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: gridEl, start: 'top 83%', end: 'center 66%', scrub: 1 } }
+      )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-b .cell-name'),
+        { clipPath: 'inset(0 0 100% 0)', y: 10 },
+        { clipPath: 'inset(0 0 0% 0)', y: 0, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: gridEl, start: 'top 78%', end: 'center 63%', scrub: 1 } }
+      )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-b .cell-desc'),
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: gridEl, start: 'top 74%', end: 'center 60%', scrub: 1 } }
+      )
+
+      /* ── Type C: perspective flip up from below ── */
+      gsap.fromTo(cellsC,
+        { y: 40, rotationX: -20, opacity: 0, transformPerspective: 700, transformOrigin: 'center bottom' },
+        { y: 0, rotationX: 0, opacity: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: gridEl, start: 'top 80%', end: 'center 65%', scrub: 1 } }
+      )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-c .cell-name'),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: gridEl, start: 'top 76%', end: 'center 62%', scrub: 1 } }
+      )
+
+      /* ── Type D: scale punch with rotation snap ── */
+      gsap.fromTo(cellsD,
+        { scale: 0.3, rotation: -8, opacity: 0, transformOrigin: 'center center' },
+        { scale: 1, rotation: 0, opacity: 1, ease: 'power3.out', stagger: 0.1,
+          scrollTrigger: { trigger: gridEl, start: 'top 82%', end: 'center 65%', scrub: 1 } }
+      )
+      gsap.fromTo(el.querySelectorAll('.bento-cell-d .cell-name'),
+        { opacity: 0, y: 7 },
+        { opacity: 1, y: 0, ease: EASE_OUT, stagger: 0.08,
+          scrollTrigger: { trigger: gridEl, start: 'top 78%', end: 'center 62%', scrub: 1 } }
+      )
+
     }, sectionRef)
 
     return () => ctx.revert()
@@ -93,7 +147,7 @@ export default function BentoStack() {
         .bento-cell {
           transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.4s ease;
           cursor: default;
-          will-change: transform, opacity;
+          will-change: transform, opacity, clip-path;
         }
         .bento-cell-a:hover {
           background: #1C1C1C !important;
@@ -159,31 +213,45 @@ export default function BentoStack() {
               >
                 {isA && (
                   <>
-                    <span className="t-label" style={{ color: 'var(--accent)' }}>PRIMARY</span>
-                    <span style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 700, fontSize: 'clamp(24px,3vw,32px)', lineHeight: 1.1, color: 'var(--text-inverse)' }}>
+                    <span className="t-label cell-label" style={{ color: 'var(--accent)' }}>PRIMARY</span>
+                    <span
+                      className="cell-name"
+                      style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 700, fontSize: 'clamp(24px,3vw,32px)', lineHeight: 1.1, color: 'var(--text-inverse)' }}
+                    >
                       {cell.name}
                     </span>
                   </>
                 )}
                 {isB && (
                   <>
-                    <span style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 600, fontSize: 22, lineHeight: 1.1, color: 'var(--text-primary)' }}>
-                      {cell.name}
-                    </span>
+                    <div style={{ overflow: 'hidden' }}>
+                      <span
+                        className="cell-name"
+                        style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 600, fontSize: 22, lineHeight: 1.1, color: 'var(--text-primary)', display: 'block' }}
+                      >
+                        {cell.name}
+                      </span>
+                    </div>
                     {cell.description && (
-                      <span style={{ fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                      <span
+                        className="cell-desc"
+                        style={{ fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}
+                      >
                         {cell.description}
                       </span>
                     )}
                   </>
                 )}
                 {isC && (
-                  <span style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 600, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1, marginTop: 'auto' }}>
+                  <span
+                    className="cell-name"
+                    style={{ fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 600, fontSize: 17, color: 'var(--text-primary)', lineHeight: 1.1, marginTop: 'auto' }}
+                  >
                     {cell.name}
                   </span>
                 )}
                 {isD && (
-                  <span className="t-label" style={{ color: 'var(--black)' }}>{cell.name}</span>
+                  <span className="t-label cell-name" style={{ color: 'var(--black)' }}>{cell.name}</span>
                 )}
               </div>
             )

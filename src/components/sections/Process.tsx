@@ -33,59 +33,88 @@ export default function Process() {
   const numRefs    = useRef<(HTMLSpanElement | null)[]>([])
 
   useEffect(() => {
-    if (!sectionRef.current) return
-    const el     = sectionRef.current
-    const lines  = el.querySelectorAll('[data-line]')
-    const label  = el.querySelector('.section-label')
-    const titles = el.querySelectorAll('[data-title]')
-    const bodies = el.querySelectorAll('[data-body]')
+    const el = sectionRef.current
+    if (!el) return
+
+    const label    = el.querySelector<HTMLElement>('.section-label')
+    const lines    = el.querySelectorAll('[data-line]')
+    const cards    = el.querySelectorAll<HTMLElement>('[data-card]')
+    const borders  = el.querySelectorAll<HTMLElement>('[data-border]')
+    const titles   = el.querySelectorAll<HTMLElement>('[data-title]')
+    const bodies   = el.querySelectorAll<HTMLElement>('[data-body]')
+    const stepsEl  = el.querySelector<HTMLElement>('.process-steps')
 
     const ctx = gsap.context(() => {
-      /* Section label */
-      if (label) gsap.fromTo(label,
+
+      /* ── Section label ── */
+      gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
-        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
+        { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 58%', scrub: 1 } }
       )
 
-      /* Headline */
+      /* ── Headline: each line clips up as a solid block ── */
       gsap.fromTo(lines,
-        { y: '105%', opacity: 0 },
-        { y: '0%', opacity: 1, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 15%', scrub: 1 } }
+        { y: '110%', opacity: 0 },
+        { y: '0%', opacity: 1, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: el, start: 'top 80%', end: 'top 18%', scrub: 1 } }
       )
 
-      /* Step titles */
-      gsap.fromTo(titles,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 }, delay: 0.3 }
+      /* ── Left borders grow downward card by card ── */
+      gsap.fromTo(borders,
+        { scaleY: 0, transformOrigin: 'top center' },
+        { scaleY: 1, ease: 'none', stagger: 0.1,
+          scrollTrigger: { trigger: stepsEl, start: 'top 88%', end: 'center 70%', scrub: 1 } }
       )
 
-      /* Step bodies */
-      gsap.fromTo(bodies,
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 }, delay: 0.45 }
+      /* ── Cards slide up from below ── */
+      gsap.fromTo(cards,
+        { y: 48, opacity: 0 },
+        { y: 0, opacity: 1, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: stepsEl, start: 'top 88%', end: 'center 70%', scrub: 1 } }
       )
 
-      /* Numbers — flicker then count up */
-      STEPS.forEach((_, i) => {
-        const numEl = numRefs.current[i]
+      /* ── Numbers: scale-in from large + count up ── */
+      numRefs.current.forEach((numEl, i) => {
         if (!numEl) return
         const target = i + 1
         const obj    = { val: 0 }
 
-        const tl = gsap.timeline({
-          scrollTrigger: { trigger: el, start: 'top 65%', end: 'top 15%', scrub: 1 },
-        })
-        tl.to(numEl, { opacity: 0.2, duration: 0.08, yoyo: true, repeat: 3, ease: 'none' })
-        tl.to(obj, {
-          val: target, duration: 0.6, ease: 'power2.out',
+        gsap.fromTo(numEl,
+          { scale: 1.6, opacity: 0 },
+          { scale: 1, opacity: 1, ease: EASE_OUT,
+            scrollTrigger: { trigger: stepsEl, start: 'top 88%', end: 'center 70%', scrub: 1 } }
+        )
+
+        gsap.to(obj, {
+          val: target, ease: 'none',
           onUpdate() { numEl.textContent = String(Math.floor(obj.val)).padStart(2, '0') },
           onComplete() { numEl.textContent = String(target).padStart(2, '0') },
+          scrollTrigger: { trigger: stepsEl, start: 'top 95%', end: 'center 60%', scrub: 1 },
         })
       })
+
+      /* ── Titles: clip-path reveal from below ── */
+      gsap.fromTo(titles,
+        { clipPath: 'inset(0 0 100% 0)', y: 12 },
+        { clipPath: 'inset(0 0 0% 0)', y: 0, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: stepsEl, start: 'top 85%', end: 'center 65%', scrub: 1 } }
+      )
+
+      /* ── Bodies: dim → bright stagger ── */
+      gsap.fromTo(bodies,
+        { opacity: 0, y: 16 },
+        { opacity: 0.7, y: 0, ease: EASE_OUT, stagger: 0.12,
+          scrollTrigger: { trigger: stepsEl, start: 'top 82%', end: 'center 60%', scrub: 1 } }
+      )
+
+      /* ── Subtle parallax on the whole headline as you scroll past ── */
+      gsap.to(el.querySelector('h2'), {
+        y: -40,
+        ease: 'none',
+        scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: 1 },
+      })
+
     }, sectionRef)
 
     return () => ctx.revert()
@@ -95,7 +124,7 @@ export default function Process() {
     <section
       id="process"
       ref={sectionRef}
-      style={{ background: 'var(--black)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' }}
+      style={{ background: 'var(--black)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)', overflow: 'hidden' }}
     >
       <style>{`
         .process-steps {
@@ -105,13 +134,14 @@ export default function Process() {
         }
         @media (max-width: 860px) {
           .process-steps { grid-template-columns: repeat(2, 1fr); }
-          .process-step:nth-child(odd) { border-left: none !important; }
-          .process-step:nth-child(n+3) { border-top: 1px solid var(--line-dark); padding-top: 40px; }
+          .process-step:nth-child(odd) [data-border] { display: none; }
+          .process-step:nth-child(n+3) { padding-top: 40px; }
         }
         @media (max-width: 520px) {
           .process-steps { grid-template-columns: 1fr; }
-          .process-step { border-left: none !important; border-top: 1px solid var(--line-dark); padding-top: 32px; padding-left: 0 !important; }
-          .process-step:first-child { border-top: none; }
+          .process-step [data-border] { display: none; }
+          .process-step { padding-left: 0 !important; padding-top: 32px; }
+          .process-step:first-child { padding-top: 0; }
         }
         .process-step { cursor: default; }
         .process-step:hover [data-title] { transform: translateX(6px); color: var(--accent) !important; }
@@ -138,30 +168,61 @@ export default function Process() {
           {STEPS.map((step, i) => (
             <div
               key={step.number}
+              data-card
               className="process-step"
-              style={{ padding: '0 0 0 40px', borderLeft: i > 0 ? '1px solid var(--line-dark)' : 'none' }}
+              style={{ padding: '0 0 0 40px', position: 'relative' }}
             >
+              {/* Animated left border */}
+              {i > 0 && (
+                <div
+                  data-border
+                  style={{
+                    position: 'absolute', top: 0, left: 0,
+                    width: 1, height: '100%',
+                    background: 'var(--line-dark)',
+                    transformOrigin: 'top center',
+                  }}
+                />
+              )}
+
+              {/* Number */}
               <span
-                ref={(el) => { numRefs.current[i] = el }}
+                ref={el => { numRefs.current[i] = el }}
                 style={{
                   fontFamily: 'var(--font-mono),"JetBrains Mono",monospace',
                   fontSize: 'clamp(32px,4vw,48px)', fontWeight: 400,
-                  color: 'var(--accent)', display: 'block', lineHeight: 1, marginBottom: 20,
+                  color: 'var(--accent)', display: 'block',
+                  lineHeight: 1, marginBottom: 20,
+                  transformOrigin: 'left center',
                 }}
               >
                 00
               </span>
-              <h3 data-title style={{
-                fontFamily: 'var(--font-display),Syne,sans-serif',
-                fontWeight: 600, fontSize: 18, lineHeight: 1.2,
-                color: 'var(--text-inverse)', marginBottom: 12,
-              }}>
-                {step.title}
-              </h3>
-              <p data-body style={{
-                fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif',
-                fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', opacity: 0.7,
-              }}>
+
+              {/* Title */}
+              <div style={{ overflow: 'hidden', marginBottom: 12 }}>
+                <h3
+                  data-title
+                  style={{
+                    fontFamily: 'var(--font-display),Syne,sans-serif',
+                    fontWeight: 600, fontSize: 18, lineHeight: 1.2,
+                    color: 'var(--text-inverse)', margin: 0,
+                  }}
+                >
+                  {step.title}
+                </h3>
+              </div>
+
+              {/* Body */}
+              <p
+                data-body
+                style={{
+                  fontFamily: 'var(--font-body),"Plus Jakarta Sans",sans-serif',
+                  fontSize: 14, lineHeight: 1.7,
+                  color: 'var(--text-secondary)',
+                  opacity: 0,
+                }}
+              >
                 {step.body}
               </p>
             </div>

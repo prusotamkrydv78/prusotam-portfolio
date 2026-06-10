@@ -37,9 +37,11 @@ export default function Navbar() {
 
   const isOpenRef = useRef(false)
   const isAnimRef = useRef(false)
+  const isHeroRef = useRef(true)   /* ref so revertNavColors never goes stale */
 
   const [isOpen,        setIsOpen]        = useState(false)
   const [theme,         setTheme]         = useState<Theme>('dark')
+  const [isHero,        setIsHero]        = useState(true)
   const [hoveredIdx,    setHoveredIdx]    = useState<number | null>(null)
   const [activeSection, setActiveSection] = useState<string>('')
   const [currentTime,   setCurrentTime]   = useState('')
@@ -98,6 +100,8 @@ export default function Navbar() {
       const inProof   = proof   ? y+64 >= proof.offsetTop   && y+64 < proof.offsetTop+proof.offsetHeight     : false
       const inContact = contact ? y+64 >= contact.offsetTop : false
       setTheme(inHero || inProcess || inProof || inContact ? 'dark' : 'light')
+      isHeroRef.current = inHero
+      setIsHero(inHero)
     }
     window.addEventListener('scroll', check, { passive: true })
     check()
@@ -108,25 +112,24 @@ export default function Navbar() {
   useEffect(() => {
     if (isOpenRef.current) return
     const isDark = theme === 'dark'
-    const targetBg = isDark ? 'rgba(17,17,17,0.97)' : 'rgba(245,240,234,0.97)'
-    const targetBorder = isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(17,17,17,0.07)'
-    const targetFg = isDark ? CLR_LIGHT : CLR_DARK
+    const targetBg     = isHero ? 'transparent' : 'rgba(17,17,17,0.97)'
+    const targetBorder = isHero ? 'none' : '1px solid rgba(255,255,255,0.06)'
+    const targetFg     = CLR_LIGHT   /* always white — bg is always dark or transparent */
 
     gsap.to(navRef.current, { backgroundColor: targetBg, borderBottom: targetBorder, duration: 0.4, ease: 'power2.out' })
     gsap.to(logoRef.current, { color: targetFg, duration: 0.4, ease: 'power2.out' })
     gsap.to([line1Ref.current, line2Ref.current], { backgroundColor: targetFg, duration: 0.4, ease: 'power2.out' })
     gsap.to(closeLblRef.current, { color: targetFg, duration: 0.4, ease: 'power2.out' })
-  }, [theme])
+  }, [theme, isHero])
 
   /* ────────────────────────────────────────────────────────
      Shared helper: revert nav-bar + hamburger colours to
      their "closed" state (dark background, light elements)
   ──────────────────────────────────────────────────────── */
   const revertNavColors = useCallback((tl: gsap.core.Timeline, at: number | string) => {
-    const isDark = theme === 'dark'
-    const targetBg = isDark ? 'rgba(17,17,17,0.97)' : 'rgba(245,240,234,0.97)'
-    const targetBorder = isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(17,17,17,0.07)'
-    const targetFg = isDark ? CLR_LIGHT : CLR_DARK
+    const targetBg     = isHeroRef.current ? 'transparent' : 'rgba(17,17,17,0.97)'
+    const targetBorder = isHeroRef.current ? 'none' : '1px solid rgba(255,255,255,0.06)'
+    const targetFg     = CLR_LIGHT
 
     if (navRef.current)    tl.to(navRef.current,    { backgroundColor: targetBg, borderBottom: targetBorder, duration: 0.3, ease: 'none' }, at)
     if (logoRef.current)   tl.to(logoRef.current,   { color: targetFg,                       duration: 0.25, ease: 'none' }, at)
@@ -155,6 +158,10 @@ export default function Navbar() {
         ;(window as unknown as { lenis?: Lenis }).lenis?.start()
       },
     })
+
+    /* cursor highlights → back to white (dark bg when overlay closed) */
+    logoRef.current?.setAttribute('data-cursor-color', '#F8F5F0')
+    hamburgerRef.current?.querySelector('[data-cursor="highlight"]')?.setAttribute('data-cursor-color', '#F8F5F0')
 
     tl.to(navContentRef.current, { opacity: 0, y: -20, duration: 0.3, ease: 'expo.in' }, 0)
     revertNavColors(tl, 0)
@@ -185,11 +192,15 @@ export default function Navbar() {
 
     gsap.set(stripsRef.current,                       { x: '100vw' })
     gsap.set(navContentRef.current,                   { opacity: 0, y: 30 })
-    gsap.set(linkInnerRefs.current.filter(Boolean),   { y: '110%', rotation: 3 })
+    gsap.set(linkInnerRefs.current.filter(Boolean),   { clipPath: 'inset(0 0 110% 0)', y: 28 })
     gsap.set(linkIdxRefs.current.filter(Boolean),     { opacity: 0, x: -10 })
     gsap.set(closeLblWrapRef.current,                 { maxWidth: 0 })
 
     const tl = gsap.timeline({ onComplete() { isAnimRef.current = false } })
+
+    /* cursor highlights → dark (light bg when overlay open) */
+    logoRef.current?.setAttribute('data-cursor-color', '#111111')
+    hamburgerRef.current?.querySelector('[data-cursor="highlight"]')?.setAttribute('data-cursor-color', '#111111')
 
     /* nav bar → cream; logo + lines + CLOSE label → dark */
     if (navRef.current)      tl.to(navRef.current,      { backgroundColor: 'rgba(245,240,234,0.97)', duration: 0.3, ease: 'none' }, 0)
@@ -214,7 +225,7 @@ export default function Navbar() {
 
     /* link clip-reveal */
     tl.to(linkInnerRefs.current.filter(Boolean), {
-      y: '0%', rotation: 0, duration: 0.8, ease: 'expo.out', stagger: 0.07,
+      clipPath: 'inset(0 0 0% 0)', y: 0, duration: 0.9, ease: 'expo.out', stagger: 0.07,
     }, '-=0.4')
 
     /* index numbers */
@@ -288,13 +299,13 @@ export default function Navbar() {
         ref={navRef}
         id="top-nav"
         className="fixed top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-[var(--gutter)]"
-        style={{ opacity: 0, backgroundColor: 'rgba(17,17,17,0.97)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ opacity: 0, backgroundColor: 'transparent' }}
       >
         <a
           ref={logoRef}
           href="#"
           onClick={e => { e.preventDefault(); if (!isOpenRef.current) window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-          data-cursor="highlight" data-cursor-color="#111111"
+          data-cursor="highlight" data-cursor-color="#F8F5F0"
           style={{ fontFamily: 'var(--font-clash),Syne,sans-serif', fontWeight: 700, fontSize: 17, color: CLR_LIGHT, textDecoration: 'none', display: 'inline-flex' }}
           onMouseEnter={() => {
             const els = logoLetterRefs.current.filter(Boolean)
@@ -320,7 +331,7 @@ export default function Navbar() {
         style={{ position: 'fixed', top: 0, right: 'var(--gutter)', height: 64, zIndex: 102, display: 'flex', alignItems: 'center', opacity: 0 }}
       >
         <div
-          data-cursor="highlight" data-cursor-color="#111111"
+          data-cursor="highlight" data-cursor-color="#F8F5F0"
           onClick={toggleMenu}
           onMouseEnter={handleHamburgerEnter}
           onMouseLeave={handleHamburgerLeave}
@@ -403,7 +414,7 @@ export default function Navbar() {
                       {index}
                     </span>
 
-                    <div style={{ overflow: 'hidden', display: 'inline-block', marginLeft: 52, position: 'relative', verticalAlign: 'top' }}>
+                    <div style={{ display: 'inline-block', marginLeft: 52, position: 'relative', verticalAlign: 'top' }}>
                       <svg
                         ref={el => { waveRefs.current[i] = el }}
                         aria-hidden="true" viewBox="0 0 1000 60" preserveAspectRatio="none"

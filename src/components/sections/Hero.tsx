@@ -3,202 +3,64 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Sparkles } from 'lucide-react'
+import ShaderBackground from '@/components/ui/shader-background'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
 }
 
-const TECH = [
+const TECH_BASE = [
   'REACT.JS', 'TYPESCRIPT', 'NODE.JS', 'ASP.NET CORE', 'REACT NATIVE',
-  'MONGODB', 'SOCKET.IO', 'GSAP', 'THREE.JS', 'VERCEL', 'C#',
+  'MONGODB', 'SOCKET.IO', 'GSAP', 'THREE.JS', 'VERCEL', 'C#', 'JWT',
 ]
-
-const WAVE_PALETTE = [
-  { offset: 0,           amplitude: 65, frequency: 0.0028, color: 'rgba(255,77,0,0.5)',     opacity: 0.5,  lineWidth: 2.0, shadowBlur: 40 },
-  { offset: Math.PI*0.6, amplitude: 85, frequency: 0.0022, color: 'rgba(255,77,0,0.25)',    opacity: 0.3,  lineWidth: 1.5, shadowBlur: 25 },
-  { offset: Math.PI*1.1, amplitude: 50, frequency: 0.0035, color: 'rgba(248,245,240,0.12)', opacity: 0.2,  lineWidth: 1.0, shadowBlur: 15 },
-  { offset: Math.PI*1.6, amplitude: 75, frequency: 0.0018, color: 'rgba(255,77,0,0.12)',    opacity: 0.15, lineWidth: 1.0, shadowBlur: 10 },
-]
-
-const MOUSE_INFLUENCE  = 55
-const INFLUENCE_RADIUS = 350
+/* 4 copies — first two form the "visible" half, last two the "shadow" half.
+   Animation moves -50% so the reset is seamless regardless of viewport width. */
+const TECH_LOOP = [...TECH_BASE, ...TECH_BASE, ...TECH_BASE, ...TECH_BASE]
 
 let _revealFn: (() => void) | null = null
 export function triggerHeroReveal() { _revealFn?.() }
 
+const splitChars = (text: string) =>
+  text.split('').map((char, i) => (
+    <span
+      key={i}
+      className="hero-char"
+      style={{
+        display: char === ' ' ? 'inline' : 'inline-block',
+        transformOrigin: 'left bottom',
+      }}
+    >
+      {char === ' ' ? ' ' : char}
+    </span>
+  ))
+
 export default function Hero() {
-  const sectionRef     = useRef<HTMLElement>(null)
-  const canvasRef      = useRef<HTMLCanvasElement>(null)
-  const mouseRef       = useRef({ x: 0, y: 0 })
-  const targetMouseRef = useRef({ x: 0, y: 0 })
+  const sectionRef = useRef<HTMLElement>(null)
 
-  const splitTextToSpans = (text: string) => {
-    return text.split('').map((char, index) => (
-      <span
-        key={index}
-        className="hero-char"
-        style={{
-          display: char === ' ' ? 'inline' : 'inline-block',
-          transformOrigin: 'left bottom',
-        }}
-      >
-        {char === ' ' ? '\u00A0' : char}
-      </span>
-    ))
-  }
-
-  /* ─── Canvas wave animation ─── */
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    /* Mobile — skip canvas entirely */
-    if (window.innerWidth < 768) {
-      canvas.style.display = 'none'
-      return
-    }
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    let raf: number
-    let time = 0
-
-    const resize = () => {
-      canvas.width  = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    resize()
-
-    /* Init mouse to center so waves look symmetric on first load */
-    mouseRef.current.x = canvas.width  / 2
-    mouseRef.current.y = canvas.height / 2
-    targetMouseRef.current.x = canvas.width  / 2
-    targetMouseRef.current.y = canvas.height / 2
-
-    const onResize     = resize
-    const onMouseMove  = (e: MouseEvent) => {
-      targetMouseRef.current.x = e.clientX
-      targetMouseRef.current.y = e.clientY
-    }
-    window.addEventListener('resize',    onResize)
-    window.addEventListener('mousemove', onMouseMove)
-
-    /* Compute y for a single x on a given wave */
-    const getY = (x: number, wave: typeof WAVE_PALETTE[0]) => {
-      const amp = reducedMotion ? 20 : wave.amplitude
-
-      let mouseEffect = 0
-      if (!reducedMotion) {
-        const dx   = x - mouseRef.current.x
-        const dy   = canvas.height / 2 - mouseRef.current.y
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        const inf  = Math.max(0, 1 - dist / INFLUENCE_RADIUS)
-        mouseEffect = inf * MOUSE_INFLUENCE * Math.sin(time * 0.0012 + x * 0.008 + wave.offset)
-      }
-
-      return canvas.height * 0.52
-        + Math.sin(x * wave.frequency + time * 0.0018 + wave.offset) * amp
-        + Math.sin(x * wave.frequency * 0.35 + time * 0.0025) * (amp * 0.4)
-        + mouseEffect
-    }
-
-    const draw = () => {
-      /* Lerp mouse toward target */
-      mouseRef.current.x += (targetMouseRef.current.x - mouseRef.current.x) * 0.08
-      mouseRef.current.y += (targetMouseRef.current.y - mouseRef.current.y) * 0.08
-
-      /* Solid dark background — canvas owns the fill */
-      ctx.fillStyle = '#111111'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      ctx.lineCap  = 'round'
-      ctx.lineJoin = 'round'
-
-      WAVE_PALETTE.forEach(wave => {
-        /* Cache point y-values so we compute trig only once per wave */
-        const xs: number[] = []
-        const ys: number[] = []
-        for (let x = 0; x <= canvas.width; x += 3) {
-          xs.push(x)
-          ys.push(getY(x, wave))
-        }
-
-        const tracePath = () => {
-          ctx.beginPath()
-          for (let i = 0; i < xs.length; i++) {
-            if (i === 0) {
-              ctx.moveTo(xs[i], ys[i])
-            } else {
-              ctx.lineTo(xs[i], ys[i])
-            }
-          }
-        }
-
-        /* Pass 1 — fat glow layer */
-        ctx.save()
-        tracePath()
-        ctx.lineWidth   = wave.lineWidth * 3
-        ctx.strokeStyle = wave.color
-        ctx.globalAlpha = wave.opacity * 0.3
-        ctx.shadowBlur  = wave.shadowBlur
-        ctx.shadowColor = wave.color
-        ctx.stroke()
-        ctx.restore()
-
-        /* Pass 2 — crisp line on top */
-        ctx.save()
-        tracePath()
-        ctx.lineWidth   = wave.lineWidth
-        ctx.strokeStyle = wave.color
-        ctx.globalAlpha = wave.opacity
-        ctx.shadowBlur  = 0
-        ctx.stroke()
-        ctx.restore()
-      })
-
-      time++
-      raf = requestAnimationFrame(draw)
-    }
-
-    draw()
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize',    onResize)
-      window.removeEventListener('mousemove', onMouseMove)
-    }
-  }, [])
-
-  /* ─── Mouse parallax on headlines ─── */
+  /* ─── Mouse parallax on headline words ─── */
   useEffect(() => {
     const el = sectionRef.current
-    if (!el || window.innerWidth < 768) return
+    if (!el || typeof window === 'undefined' || window.innerWidth < 768) return
 
     const words = el.querySelectorAll<HTMLSpanElement>('.hero-word')
-    const line1 = words[0]  // "Full Stack"
-    const line2 = words[1]  // "Developer."
+    const line1 = words[0]
+    const line2 = words[1]
 
     let tx1 = 0, ty1 = 0, cx1 = 0, cy1 = 0
     let tx2 = 0, ty2 = 0, cx2 = 0, cy2 = 0
     let raf: number
-    let isHovering = false
 
     const onMove = (e: MouseEvent) => {
-      isHovering = true
-      tx1 = Math.max(-12, Math.min(12, e.clientX * -0.008))
-      ty1 = Math.max(-8,  Math.min(8,  e.clientY * -0.005))
-      tx2 = Math.max(-12, Math.min(12, e.clientX *  0.006))
-      ty2 = Math.max(-8,  Math.min(8,  e.clientY *  0.004))
+      tx1 = Math.max(-10, Math.min(10, e.clientX * -0.006))
+      ty1 = Math.max(-6,  Math.min(6,  e.clientY * -0.004))
+      tx2 = Math.max(-10, Math.min(10, e.clientX *  0.005))
+      ty2 = Math.max(-6,  Math.min(6,  e.clientY *  0.003))
     }
-    const onLeave = () => { isHovering = false; tx1 = ty1 = tx2 = ty2 = 0 }
+    const onLeave = () => { tx1 = ty1 = tx2 = ty2 = 0 }
 
     const loop = () => {
-      const lf = isHovering ? 0.06 : 0.04
-      cx1 += (tx1 - cx1) * lf; cy1 += (ty1 - cy1) * lf
-      cx2 += (tx2 - cx2) * lf; cy2 += (ty2 - cy2) * lf
+      cx1 += (tx1 - cx1) * 0.05; cy1 += (ty1 - cy1) * 0.05
+      cx2 += (tx2 - cx2) * 0.05; cy2 += (ty2 - cy2) * 0.05
       if (line1) gsap.set(line1, { x: cx1, y: cy1 })
       if (line2) gsap.set(line2, { x: cx2, y: cy2 })
       raf = requestAnimationFrame(loop)
@@ -219,6 +81,7 @@ export default function Hero() {
     const el = sectionRef.current
     if (!el) return
 
+    const topBar     = el.querySelector<HTMLElement>('.hero-top-bar')
     const badge      = el.querySelector<HTMLElement>('.hero-badge')
     const chars      = el.querySelectorAll<HTMLElement>('.hero-char')
     const words      = el.querySelectorAll<HTMLSpanElement>('.hero-word')
@@ -226,55 +89,56 @@ export default function Hero() {
     const ctas       = el.querySelector<HTMLElement>('.hero-ctas')
     const pills      = el.querySelectorAll<HTMLElement>('.hero-pill')
     const infoGrid   = el.querySelector<HTMLElement>('.hero-info-grid')
+    const ticker     = el.querySelector<HTMLElement>('.hero-ticker')
     const scrollHint = el.querySelector<HTMLElement>('.hero-scroll-hint')
     const arrowChar  = el.querySelector<HTMLElement>('.hero-scroll-arrow')
 
-    gsap.set(badge,      { opacity: 0, y: -16 })
-    gsap.set(chars,      { y: '120%', rotation: 7, opacity: 0 })
-    gsap.set(desc,       { opacity: 0, y: 16 })
-    gsap.set(ctas,       { opacity: 0, y: 16 })
-    gsap.set(pills,      { opacity: 0, scale: 0.8 })
-    gsap.set(infoGrid,   { opacity: 0, y: 20 })
+    gsap.set(topBar,     { opacity: 0 })
+    gsap.set(badge,      { opacity: 0, y: -12 })
+    gsap.set(chars,      { y: '120%', rotation: 6, opacity: 0 })
+    gsap.set(desc,       { opacity: 0, y: 14 })
+    gsap.set(ctas,       { opacity: 0, y: 14 })
+    gsap.set(pills,      { opacity: 0, scale: 0.85 })
+    gsap.set(infoGrid,   { opacity: 0, x: 18 })
+    gsap.set(ticker,     { opacity: 0 })
     gsap.set(scrollHint, { opacity: 0 })
 
-    /* Scroll hint arrow bounce — infinite after reveal */
     let bounceTween: gsap.core.Tween | null = null
-
-    /* Fade hero elements on scroll out */
-    let scrollST: ScrollTrigger | null = null
+    let scrollST:    ScrollTrigger   | null = null
 
     const reveal = () => {
       const tl = gsap.timeline({
         onComplete() {
-          /* Bounce ↓ arrow */
           if (arrowChar) {
             bounceTween = gsap.to(arrowChar, {
               y: 4, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: -1,
             })
           }
-          /* Fade elements as hero scrolls away */
           scrollST = ScrollTrigger.create({
             trigger: el,
             start:   'top top',
             end:     'bottom top',
             scrub:   true,
             onUpdate(self) {
-              const opacity = Math.max(0, 1 - self.progress * 1.5)
-              const yOffset = self.progress * -50
-              gsap.set([badge, desc, ctas, infoGrid], { opacity, y: yOffset })
-              pills.forEach(p => gsap.set(p, { opacity, y: yOffset }))
-              gsap.set(words, { opacity })
+              const op = Math.max(0, 1 - self.progress * 1.5)
+              const dy = self.progress * -50
+              gsap.set([topBar, badge, desc, ctas, infoGrid], { opacity: op, y: dy })
+              pills.forEach(p => gsap.set(p, { opacity: op, y: dy }))
+              gsap.set(words, { opacity: op })
             },
           })
         },
       })
-      tl.to(badge,      { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0.1)
-      tl.to(chars,      { y: '0%', rotation: 0, opacity: 1, duration: 1.2, ease: 'power4.out', stagger: 0.012 }, 0.2)
-      tl.to(desc,       { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0.6)
-      tl.to(ctas,       { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0.7)
-      tl.to(pills,      { opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.5)', stagger: 0.05 }, 0.8)
-      tl.to(infoGrid,   { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out' }, 0.9)
-      tl.to(scrollHint, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 1.1)
+
+      tl.to(topBar,     { opacity: 1,                    duration: 0.55, ease: 'expo.out' },             0.0)
+      tl.to(badge,      { opacity: 1, y: 0,              duration: 0.65, ease: 'expo.out' },             0.1)
+      tl.to(chars,      { y: '0%', rotation: 0, opacity: 1, duration: 1.1,  ease: 'power4.out', stagger: 0.012 }, 0.25)
+      tl.to(infoGrid,   { opacity: 1, x: 0,              duration: 0.8,  ease: 'expo.out' },             0.5)
+      tl.to(desc,       { opacity: 1, y: 0,              duration: 0.65, ease: 'expo.out' },             0.65)
+      tl.to(ctas,       { opacity: 1, y: 0,              duration: 0.65, ease: 'expo.out' },             0.75)
+      tl.to(pills,      { opacity: 1, scale: 1,          duration: 0.5,  ease: 'back.out(1.4)', stagger: 0.04 }, 0.85)
+      tl.to(ticker,     { opacity: 1,                    duration: 0.5,  ease: 'power2.out' },           0.9)
+      tl.to(scrollHint, { opacity: 1,                    duration: 0.4,  ease: 'power2.out' },           1.05)
     }
 
     _revealFn = reveal
@@ -289,345 +153,411 @@ export default function Hero() {
     <section
       ref={sectionRef}
       id="hero"
-      style={{ position: 'relative', minHeight: '100vh', height: '100svh', background: '#111111', overflow: 'hidden' }}
+      style={{
+        position:        'relative',
+        minHeight:       '100vh',
+        height:          '100svh',
+        background:      '#111111',
+        overflow:        'hidden',
+        display:         'flex',
+        flexDirection:   'column',
+      }}
     >
       <style>{`
         @keyframes hero-pulse {
           0%, 100% { opacity: 1; }
-          50%      { opacity: 0.45; }
+          50%      { opacity: 0.4; }
+        }
+        @keyframes hero-tick {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .hero-tick-inner {
+          animation: hero-tick 24s linear infinite;
+        }
+        .hero-tick-inner:hover { animation-play-state: paused; }
+
+        @media (max-width: 1023px) {
+          .hero-meta-panel      { display: none !important; }
+          .hero-headline-wrap   { padding-right: 0 !important; }
+        }
+        @media (max-width: 639px) {
+          .hero-top-right { display: none !important; }
         }
       `}</style>
 
-      {/* ── z:0 — canvas wave background ── */}
-      <canvas
-        ref={canvasRef}
-        style={{
-          position:      'absolute',
-          inset:         0,
-          width:         '100%',
-          height:        '100%',
-          zIndex:        0,
-          pointerEvents: 'none',
-        }}
-      />
+      {/* ── z:0 — WebGL2 nebula shader ── */}
+      <ShaderBackground />
 
-      {/* ── Background Glow Blobs ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{
-          position: 'absolute', left: '50%', top: 0, width: 520, height: 520,
-          transform: 'translateX(-50%)', borderRadius: '50%',
-          backgroundColor: 'rgba(248, 245, 240, 0.035)', filter: 'blur(140px)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: 0, right: 0, width: 360, height: 360,
-          borderRadius: '50%',
-          backgroundColor: 'rgba(248, 245, 240, 0.025)', filter: 'blur(120px)',
-        }} />
-        <div style={{
-          position: 'absolute', top: '50%', left: '25%', width: 400, height: 400,
-          borderRadius: '50%',
-          backgroundColor: 'rgba(255, 77, 0, 0.02)', filter: 'blur(150px)',
-        }} />
-      </div>
+      {/* ── z:1 — all editorial content ── */}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
 
-      {/* ── z:1 — all text content centered flex ── */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '0 clamp(24px, 5vw, 80px)',
-        textAlign: 'center',
-      }}>
-
-        {/* Top Badge */}
+        {/* ╔═══ TOP BAR ═══╗ */}
         <div
-          className="hero-badge"
+          className="hero-top-bar"
           style={{
-            marginBottom: 'clamp(16px, 3vw, 24px)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            borderRadius: 9999,
-            border: '1px solid rgba(248, 245, 240, 0.1)',
-            backgroundColor: 'rgba(17, 17, 17, 0.6)',
-            padding: '8px 16px',
-            fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-            fontSize: 11,
-            fontWeight: 600,
-            textTransform: 'uppercase',
+            display:        'flex',
+            alignItems:     'center',
+            justifyContent: 'space-between',
+            padding:        'clamp(18px,2.8vw,30px) clamp(24px,5vw,80px)',
+            borderBottom:   '1px solid rgba(248,245,240,0.06)',
+            flexShrink:     0,
+          }}
+        >
+          {/* Monogram */}
+          <span style={{
+            fontFamily:    'var(--font-clash), Syne, sans-serif',
+            fontWeight:    700,
+            fontSize:      14,
             letterSpacing: '0.2em',
-            color: 'rgba(248, 245, 240, 0.8)',
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-[#FF4D00]" aria-hidden="true" />
-          <span>Available for work</span>
-        </div>
+            color:         '#F8F5F0',
+            textTransform: 'uppercase',
+          }}>PKY</span>
 
-        {/* Centered Headline */}
-        <h1
-          className="hero-title"
-          style={{
-            textAlign: 'center',
-            marginBottom: 'clamp(16px, 3vw, 24px)',
-            maxWidth: 1000,
-            lineHeight: 1.0,
-            letterSpacing: '-0.03em',
-          }}
-        >
-          {/* Line 1 */}
-          <div style={{ overflow: 'hidden', width: '100%' }}>
-            <span
-              className="hero-word"
-              style={{
-                display:       'block',
-                fontFamily:    'var(--font-clash), Syne, sans-serif',
-                fontWeight:    800,
-                fontSize:      'clamp(40px, 7vw, 110px)',
-                color:         '#F8F5F0',
-                lineHeight:    0.95,
-                letterSpacing: '-0.03em',
-              }}
-            >{splitTextToSpans("Building High-Performance")}</span>
-          </div>
-
-          {/* Line 2 */}
-          <div style={{ overflow: 'hidden', width: '100%' }}>
-            <span
-              className="hero-word"
-              style={{
-                display:       'block',
-                fontFamily:    'var(--font-clash), Syne, sans-serif',
-                fontWeight:    800,
-                fontSize:      'clamp(40px, 7vw, 110px)',
-                color:         '#F8F5F0',
-                lineHeight:    0.95,
-                letterSpacing: '-0.03em',
-              }}
-            >
-              {splitTextToSpans("Digital Experiences")}
-              <span className="hero-char" style={{ display: 'inline-block', transformOrigin: 'left bottom', color: '#FF4D00' }}>.</span>
-            </span>
-          </div>
-        </h1>
-
-        {/* Description */}
-        <p
-          className="hero-desc"
-          style={{
-            fontFamily: 'var(--font-cabinet), "Plus Jakarta Sans", sans-serif',
-            fontSize: 'clamp(15px, 2.2vw, 19px)',
-            color: 'rgba(248, 245, 240, 0.65)',
-            textAlign: 'center',
-            maxWidth: 720,
-            lineHeight: 1.6,
-            marginBottom: 'clamp(20px, 4vw, 32px)',
-          }}
-        >
-          Full Stack Developer specializing in crafting modern web applications, mobile apps, and real-time interactive experiences with precision and speed.
-        </p>
-
-        {/* CTA Buttons */}
-        <div
-          className="hero-ctas"
-          style={{
-            display: 'flex',
-            gap: 16,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 'clamp(24px, 5vw, 40px)',
-            flexWrap: 'wrap',
-          }}
-        >
-          <a
-            href="#projects"
-            className="hero-btn-primary"
+          {/* Availability badge */}
+          <div
+            className="hero-badge"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              backgroundColor: '#FF4D00',
-              color: '#F8F5F0',
-              fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-              fontSize: 13,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              padding: '16px 32px',
-              borderRadius: 9999,
-              transition: 'transform 0.3s var(--ease-out), background-color 0.3s ease',
-              textDecoration: 'none',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.backgroundColor = '#E04400';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.backgroundColor = '#FF4D00';
+              display:         'inline-flex',
+              alignItems:      'center',
+              gap:             7,
+              borderRadius:    0,
+              border:          '1px solid rgba(255,77,0,0.2)',
+              backgroundColor: 'rgba(255,77,0,0.06)',
+              padding:         '6px 14px',
+              fontFamily:      'var(--font-mono), "JetBrains Mono", monospace',
+              fontSize:        10,
+              letterSpacing:   '0.2em',
+              textTransform:   'uppercase',
+              color:           'rgba(248,245,240,0.7)',
+              backdropFilter:  'blur(12px)',
             }}
           >
-            Explore Projects <span style={{ transition: 'transform 0.3s ease' }}>↗</span>
-          </a>
-          <a
-            href="#contact"
-            className="hero-btn-secondary"
+            <span style={{
+              width: 5, height: 5, borderRadius: '50%', background: '#FF4D00',
+              display: 'inline-block', flexShrink: 0,
+              animation: 'hero-pulse 2.5s ease-in-out infinite',
+            }} />
+            Available for work
+          </div>
+
+          {/* Year / stack label */}
+          <span
+            className="hero-top-right"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: 'rgba(248, 245, 240, 0.04)',
-              color: 'rgba(248, 245, 240, 0.8)',
-              fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-              fontSize: 13,
-              fontWeight: 600,
+              fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+              fontSize:      10,
+              letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              padding: '16px 32px',
-              borderRadius: 9999,
-              border: '1px solid rgba(248, 245, 240, 0.1)',
-              backdropFilter: 'blur(12px)',
-              transition: 'transform 0.3s var(--ease-out), border-color 0.3s ease, background-color 0.3s ease',
-              textDecoration: 'none',
+              color:         'rgba(248,245,240,0.28)',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)';
-              e.currentTarget.style.borderColor = 'rgba(248, 245, 240, 0.25)';
-              e.currentTarget.style.backgroundColor = 'rgba(248, 245, 240, 0.08)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.borderColor = 'rgba(248, 245, 240, 0.1)';
-              e.currentTarget.style.backgroundColor = 'rgba(248, 245, 240, 0.04)';
-            }}
-          >
-            Get in Touch
-          </a>
+          >FULL STACK · 2026</span>
         </div>
 
-        {/* Tech Tag Pills List */}
-        <ul
-          className="hero-pills"
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            gap: 12,
-            maxWidth: 800,
-            listStyle: 'none',
-            padding: 0,
-            margin: '0 auto clamp(24px, 5vw, 40px) auto',
-          }}
-        >
-          {TECH.slice(0, 6).map((tech) => (
-            <li
-              key={tech}
-              className="hero-pill"
-              style={{
-                borderRadius: 9999,
-                border: '1px solid rgba(248, 245, 240, 0.08)',
-                backgroundColor: 'rgba(248, 245, 240, 0.03)',
-                padding: '8px 16px',
-                backdropFilter: 'blur(8px)',
-                fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
-                fontSize: 11,
-                letterSpacing: '0.15em',
-                color: 'rgba(248, 245, 240, 0.55)',
-                transition: 'color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#FF4D00';
-                e.currentTarget.style.borderColor = 'rgba(255, 77, 0, 0.3)';
-                e.currentTarget.style.backgroundColor = 'rgba(255, 77, 0, 0.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(248, 245, 240, 0.55)';
-                e.currentTarget.style.borderColor = 'rgba(248, 245, 240, 0.08)';
-                e.currentTarget.style.backgroundColor = 'rgba(248, 245, 240, 0.03)';
-              }}
-            >
-              {tech}
-            </li>
-          ))}
-        </ul>
+        {/* ╔═══ MAIN CONTENT ═══╗ */}
+        <div style={{
+          flex:            1,
+          display:         'flex',
+          flexDirection:   'column',
+          justifyContent:  'flex-end',
+          padding:         'clamp(20px,3vw,40px) clamp(24px,5vw,80px) clamp(20px,2.5vw,32px)',
+        }}>
 
-        {/* Info Grid */}
-        <div
-          className="hero-info-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16,
-            width: '100%',
-            maxWidth: 800,
-            margin: '0 auto',
-            borderRadius: 16,
-            border: '1px solid rgba(248, 245, 240, 0.08)',
-            backgroundColor: 'rgba(248, 245, 240, 0.02)',
-            padding: '20px clamp(16px, 4vw, 32px)',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          {([
-            { label: 'ROLE',   value: 'Full Stack Developer',     dot: false },
-            { label: 'FOCUS',  value: 'Web · Mobile · Real-time', dot: false },
-            { label: 'STATUS', value: 'Open to work',             dot: true  },
-          ] as const).map(item => (
-            <div key={item.label} className="hero-info-item" style={{ textAlign: 'center' }}>
-              <div style={{
+          {/* Headline row + right meta panel */}
+          <div style={{
+            display:     'flex',
+            alignItems:  'flex-end',
+            gap:         'clamp(28px,4vw,56px)',
+            marginBottom:'clamp(18px,2.5vw,32px)',
+          }}>
+
+            {/* ── Headline ── */}
+            <div className="hero-headline-wrap" style={{ flex: 1, paddingRight: 'clamp(0px,2vw,24px)' }}>
+
+              {/* Section index label */}
+              <p style={{
                 fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
                 fontSize:      10,
-                letterSpacing: '0.25em',
+                letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color:         'rgba(248, 245, 240, 0.4)',
-                marginBottom:  8,
-              }}>{item.label}</div>
-              <div style={{
-                fontFamily: 'var(--font-sans), "Cabinet Grotesk", sans-serif',
-                fontSize:   15,
-                fontWeight: 600,
-                color:      '#F8F5F0',
-                display:    'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap:        item.dot ? 8 : 0,
-              }}>
-                {item.dot && (
-                  <span style={{
-                    width: 5, height: 5, borderRadius: '50%', background: '#FF4D00',
-                    display: 'inline-block', flexShrink: 0,
-                    animation: 'hero-pulse 2s ease-in-out infinite',
-                  }} />
-                )}
-                {item.value}
-              </div>
+                color:         'rgba(248,245,240,0.22)',
+                marginBottom:  'clamp(10px,1.8vw,18px)',
+              }}>01 — HERO</p>
+
+              <h1 style={{ margin: 0, lineHeight: 0.92, letterSpacing: '-0.03em' }}>
+
+                {/* Line 1 — thin ghosted setup */}
+                <div style={{ overflow: 'hidden' }}>
+                  <span
+                    className="hero-word"
+                    style={{
+                      display:       'block',
+                      fontFamily:    'var(--font-clash), Syne, sans-serif',
+                      fontWeight:    300,
+                      fontSize:      'clamp(36px,6.8vw,105px)',
+                      color:         'rgba(248,245,240,0.22)',
+                      lineHeight:    0.95,
+                      letterSpacing: '-0.03em',
+                      fontStyle:     'italic',
+                    }}
+                  >{splitChars('Building High-Performance')}</span>
+                </div>
+
+                {/* Line 2 — heavy punchline */}
+                <div style={{ overflow: 'hidden' }}>
+                  <span
+                    className="hero-word"
+                    style={{
+                      display:       'block',
+                      fontFamily:    'var(--font-clash), Syne, sans-serif',
+                      fontWeight:    800,
+                      fontSize:      'clamp(36px,6.8vw,105px)',
+                      color:         '#F8F5F0',
+                      lineHeight:    0.95,
+                      letterSpacing: '-0.03em',
+                    }}
+                  >
+                    {splitChars('Digital Experiences')}
+                    <span
+                      className="hero-char"
+                      style={{ display: 'inline-block', transformOrigin: 'left bottom', color: '#FF4D00' }}
+                    >.</span>
+                  </span>
+                </div>
+              </h1>
             </div>
-          ))}
+
+            {/* ── Right meta panel — hidden < 1024px ── */}
+            <div
+              className="hero-info-grid hero-meta-panel"
+              style={{
+                flexShrink:     0,
+                width:          'clamp(130px,13vw,185px)',
+                display:        'flex',
+                flexDirection:  'column',
+                gap:            14,
+                paddingBottom:  2,
+              }}
+            >
+              {/* Large index number */}
+              <span style={{
+                display:       'block',
+                fontFamily:    'var(--font-clash), Syne, sans-serif',
+                fontWeight:    800,
+                fontSize:      'clamp(60px,7.5vw,105px)',
+                lineHeight:    1,
+                letterSpacing: '-0.04em',
+                color:         '#FF4D00',
+                opacity:       0.8,
+              }}>01</span>
+
+              {/* Metadata rows */}
+              {([
+                { label: 'ROLE',   value: 'Full Stack Dev', dot: false },
+                { label: 'FOCUS',  value: 'Web · Mobile',   dot: false },
+                { label: 'STATUS', value: 'Open to work',   dot: true  },
+              ] as const).map(item => (
+                <div key={item.label}>
+                  <p style={{
+                    fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+                    fontSize:      9,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    color:         'rgba(248,245,240,0.28)',
+                    marginBottom:  3,
+                  }}>{item.label}</p>
+                  <p style={{
+                    fontFamily:  'var(--font-mono), "JetBrains Mono", monospace',
+                    fontSize:    11,
+                    color:       'rgba(248,245,240,0.7)',
+                    display:     'flex',
+                    alignItems:  'center',
+                    gap:         5,
+                    margin:      0,
+                  }}>
+                    {item.dot && (
+                      <span style={{
+                        width: 4, height: 4, borderRadius: '50%',
+                        background: '#FF4D00', display: 'inline-block', flexShrink: 0,
+                        animation: 'hero-pulse 2.5s ease-in-out infinite',
+                      }} />
+                    )}
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: '100%', height: 1, background: 'rgba(248,245,240,0.06)', marginBottom: 'clamp(18px,2.5vw,30px)' }} />
+
+          {/* Desc + CTAs */}
+          <div style={{
+            display:     'flex',
+            alignItems:  'flex-start',
+            gap:         'clamp(20px,4vw,56px)',
+            flexWrap:    'wrap',
+            marginBottom:'clamp(16px,2vw,24px)',
+          }}>
+            <p
+              className="hero-desc"
+              style={{
+                flex:       '1 1 280px',
+                fontFamily: 'var(--font-cabinet), "Plus Jakarta Sans", sans-serif',
+                fontSize:   'clamp(13px,1.4vw,16px)',
+                color:      'rgba(248,245,240,0.5)',
+                lineHeight: 1.7,
+                maxWidth:   460,
+                margin:     0,
+              }}
+            >
+              Full Stack Developer crafting modern web applications, mobile apps, and real-time systems — with precision and speed.
+            </p>
+
+            <div className="hero-ctas" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
+              <a
+                href="#projects"
+                style={{
+                  display:         'inline-flex',
+                  alignItems:      'center',
+                  gap:             7,
+                  backgroundColor: '#FF4D00',
+                  color:           '#F8F5F0',
+                  fontFamily:      'var(--font-mono), "JetBrains Mono", monospace',
+                  fontSize:        10,
+                  fontWeight:      600,
+                  textTransform:   'uppercase',
+                  letterSpacing:   '0.15em',
+                  padding:         '12px 22px',
+                  borderRadius:    0,
+                  textDecoration:  'none',
+                  transition:      'transform 0.3s cubic-bezier(0.19,1,0.22,1), background-color 0.2s ease',
+                  whiteSpace:      'nowrap',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.backgroundColor = '#E04400' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.backgroundColor = '#FF4D00' }}
+              >
+                View Projects ↗
+              </a>
+              <a
+                href="#contact"
+                style={{
+                  display:         'inline-flex',
+                  alignItems:      'center',
+                  backgroundColor: 'rgba(248,245,240,0.04)',
+                  color:           'rgba(248,245,240,0.7)',
+                  fontFamily:      'var(--font-mono), "JetBrains Mono", monospace',
+                  fontSize:        10,
+                  fontWeight:      600,
+                  textTransform:   'uppercase',
+                  letterSpacing:   '0.15em',
+                  padding:         '12px 22px',
+                  borderRadius:    0,
+                  border:          '1px solid rgba(248,245,240,0.1)',
+                  textDecoration:  'none',
+                  transition:      'transform 0.3s cubic-bezier(0.19,1,0.22,1), border-color 0.2s ease, background-color 0.2s ease',
+                  whiteSpace:      'nowrap',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.borderColor = 'rgba(248,245,240,0.22)'; e.currentTarget.style.backgroundColor = 'rgba(248,245,240,0.08)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)';    e.currentTarget.style.borderColor = 'rgba(248,245,240,0.1)';  e.currentTarget.style.backgroundColor = 'rgba(248,245,240,0.04)' }}
+              >
+                Get in Touch
+              </a>
+            </div>
+          </div>
+
+          {/* Tech pills */}
+          <ul style={{ display: 'flex', flexWrap: 'wrap', gap: 7, listStyle: 'none', margin: 0, padding: 0 }}>
+            {(['REACT.JS', 'TYPESCRIPT', 'NODE.JS', 'ASP.NET CORE', 'REACT NATIVE', 'MONGODB'] as const).map(tech => (
+              <li
+                key={tech}
+                className="hero-pill"
+                style={{
+                  borderRadius:    0,
+                  border:          '1px solid rgba(248,245,240,0.08)',
+                  backgroundColor: 'rgba(248,245,240,0.03)',
+                  padding:         '5px 12px',
+                  fontFamily:      'var(--font-mono), "JetBrains Mono", monospace',
+                  fontSize:        9,
+                  letterSpacing:   '0.14em',
+                  textTransform:   'uppercase',
+                  color:           'rgba(248,245,240,0.4)',
+                  transition:      'color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease',
+                  cursor:          'default',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#FF4D00'; e.currentTarget.style.borderColor = 'rgba(255,77,0,0.22)'; e.currentTarget.style.backgroundColor = 'rgba(255,77,0,0.06)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(248,245,240,0.4)'; e.currentTarget.style.borderColor = 'rgba(248,245,240,0.08)'; e.currentTarget.style.backgroundColor = 'rgba(248,245,240,0.03)' }}
+              >
+                {tech}
+              </li>
+            ))}
+          </ul>
         </div>
 
+        {/* ╔═══ BOTTOM BAR: ticker + scroll hint ═══╗ */}
+        <div style={{
+          display:        'flex',
+          alignItems:     'center',
+          borderTop:      '1px solid rgba(248,245,240,0.06)',
+          flexShrink:     0,
+          height:         44,
+          overflow:       'hidden',
+        }}>
+          {/* Marquee ticker */}
+          <div
+            className="hero-ticker"
+            style={{
+              flex:              1,
+              overflow:          'hidden',
+              height:            '100%',
+              display:           'flex',
+              alignItems:        'center',
+              maskImage:         'linear-gradient(90deg, transparent 0%, black 6%, black 82%, transparent 100%)',
+              WebkitMaskImage:   'linear-gradient(90deg, transparent 0%, black 6%, black 82%, transparent 100%)',
+            }}
+          >
+            <div className="hero-tick-inner" style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+              {TECH_LOOP.map((t, i) => (
+                <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 18px' }}>
+                  <span style={{ color: '#FF4D00', fontSize: 7, opacity: 0.65 }}>◆</span>
+                  <span style={{
+                    fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+                    fontSize:      9,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color:         'rgba(248,245,240,0.35)',
+                  }}>{t}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Scroll hint */}
+          <div
+            className="hero-scroll-hint"
+            style={{
+              flexShrink:    0,
+              padding:       '0 clamp(24px,5vw,80px)',
+              fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
+              fontSize:      10,
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color:         'rgba(248,245,240,0.22)',
+              display:       'flex',
+              alignItems:    'center',
+              gap:           6,
+              borderLeft:    '1px solid rgba(248,245,240,0.06)',
+              height:        '100%',
+            }}
+          >
+            <span className="hero-scroll-arrow" style={{ display: 'inline-block' }}>↓</span>
+            Scroll
+          </div>
+        </div>
       </div>
 
-      {/* BOTTOM CENTER: scroll hint */}
-      <div
-        className="hero-scroll-hint"
-        style={{
-          position:      'absolute',
-          bottom:        32,
-          left:          '50%',
-          transform:     'translateX(-50%)',
-          fontFamily:    'var(--font-mono), "JetBrains Mono", monospace',
-          fontSize:      11,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          color:         'rgba(248,245,240,0.3)',
-          zIndex:        3,
-        }}
-      ><span className="hero-scroll-arrow" style={{ display: 'inline-block' }}>↓</span> Scroll</div>
-
-      {/* ── z:2 — grain texture overlay (on top of both canvas and content) ── */}
+      {/* Film grain overlay */}
       <div style={{
         position:        'absolute',
         inset:           0,

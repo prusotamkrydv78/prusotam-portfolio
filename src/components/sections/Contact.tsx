@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
+import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
 import { person } from '@/lib/data'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -14,40 +14,50 @@ export default function Contact() {
 
   useEffect(() => {
     if (!sectionRef.current) return
-    const el     = sectionRef.current
-    const lines  = el.querySelectorAll('[data-line]')
-    const extras = el.querySelectorAll('[data-extra]')
-    const label  = el.querySelector('.section-label')
-    const rule   = el.querySelector('.contact-rule')
+    const el    = sectionRef.current
+    const label = el.querySelector<HTMLElement>('.section-label')
+    const rule  = el.querySelector<HTMLElement>('.contact-rule')
+    const chars = el.querySelectorAll<HTMLElement>('[data-char]')
+    const infos = el.querySelectorAll<HTMLElement>('[data-info]')
+    const formEl = el.querySelector<HTMLElement>('[data-form]')
 
     const ctx = gsap.context(() => {
-      /* Section label */
+
+      /* ── Section label: letterSpacing expand ── */
       if (label) gsap.fromTo(label,
         { opacity: 0, letterSpacing: '0em' },
-        { opacity: 1, letterSpacing: '0.15em', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 20%', scrub: 1 } }
+        { opacity: 1, letterSpacing: '0.15em', ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 60%', scrub: 1 } }
       )
 
-      /* Horizontal rule sweep before words */
+      /* ── Rule: sweep from left ── */
       if (rule) gsap.fromTo(rule,
-        { scaleX: 0 },
-        { scaleX: 1, transformOrigin: 'left center', duration: 0.6, ease: EASE_OUT,
-          scrollTrigger: { trigger: el, start: 'top 78%', end: 'top 20%', scrub: 1 } }
+        { scaleX: 0, transformOrigin: 'left center' },
+        { scaleX: 1, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 82%', end: 'top 55%', scrub: 1 } }
       )
 
-      /* Headline clip reveal — 0.1s after rule */
-      gsap.fromTo(lines,
-        { y: '105%' },
-        { y: '0%', duration: DUR_MID, ease: EASE_OUT, stagger: 0.08, delay: 0.1,
-          scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 20%', scrub: 1 } }
+      /* ── Headline: char-by-char slide up ── */
+      if (chars.length) gsap.fromTo(chars,
+        { y: '115%' },
+        { y: '0%', ease: EASE_OUT, stagger: 0.018,
+          scrollTrigger: { trigger: el, start: 'top 80%', end: 'center 70%', scrub: 1 } }
       )
 
-      /* Extra items */
-      gsap.fromTo(extras,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: DUR_MID, ease: EASE_OUT, stagger: 0.08, delay: 0.35,
-          scrollTrigger: { trigger: el, start: 'top 75%', end: 'top 20%', scrub: 1 } }
+      /* ── Info links: stagger from left ── */
+      if (infos.length) gsap.fromTo(infos,
+        { x: -20, opacity: 0 },
+        { x: 0, opacity: 1, ease: EASE_OUT, stagger: 0.1,
+          scrollTrigger: { trigger: el, start: 'top 72%', end: 'center 62%', scrub: 1 } }
       )
+
+      /* ── Form: slide up from below ── */
+      if (formEl) gsap.fromTo(formEl,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, ease: EASE_OUT,
+          scrollTrigger: { trigger: el, start: 'top 70%', end: 'center 60%', scrub: 1 } }
+      )
+
     }, sectionRef)
 
     return () => ctx.revert()
@@ -99,17 +109,23 @@ export default function Contact() {
           <div className="lg:col-span-5 flex flex-col justify-between">
             <div>
               <div style={{ marginBottom: 32 }}>
-                {['Open to', 'opportunities.'].map((line, i) => (
-                  <div key={i} style={{ overflow: 'hidden' }}>
-                    <span data-line className="t-title" style={{ display: 'block', color: 'var(--text-inverse)', lineHeight: 1.05 }}>
-                      {line}
-                    </span>
+                {['Open to', 'opportunities.'].map((line, li) => (
+                  <div key={li} className="t-title" style={{ display: 'block', color: 'var(--text-inverse)', lineHeight: 1.05 }}>
+                    {line.split('').map((char, ci) =>
+                      char === ' '
+                        ? <span key={ci} style={{ display: 'inline-block' }}>{' '}</span>
+                        : (
+                          <span key={ci} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
+                            <span data-char style={{ display: 'inline-block' }}>{char}</span>
+                          </span>
+                        )
+                    )}
                   </div>
                 ))}
               </div>
 
-              <div data-extra style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 48 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 48 }}>
+                <div data-info style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span className="t-label" style={{ color: 'var(--text-secondary)', fontSize: 9 }}>01 / EMAIL</span>
                   <button
                     onClick={copyEmail}
@@ -121,6 +137,7 @@ export default function Contact() {
                       transition: 'color 0.3s', fontWeight: 500, padding: 0,
                     }}
                     data-cursor="highlight"
+                    data-cursor-color="#F8F5F0"
                   >
                     <span style={{ transition: 'transform 0.25s var(--ease-out), opacity 0.25s ease', display: 'inline-block' }}
                       onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = 'translate(3px,-3px)'; el.style.color = 'var(--accent)' }}
@@ -130,13 +147,14 @@ export default function Contact() {
                   </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div data-info style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span className="t-label" style={{ color: 'var(--text-secondary)', fontSize: 9 }}>02 / GITHUB</span>
                   <a
                     href={person.githubUrl}
                     target="_blank" rel="noopener noreferrer"
                     className="t-lead underline-sweep"
                     data-cursor="highlight"
+                    data-cursor-color="#F8F5F0"
                     style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, display: 'inline-block', width: 'fit-content', transition: 'color 0.3s' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-inverse)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
@@ -149,7 +167,7 @@ export default function Contact() {
                   </a>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div data-info style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span className="t-label" style={{ color: 'var(--text-secondary)', fontSize: 9 }}>03 / RESUME</span>
                   <a
                     href="/resume.pdf"
@@ -157,6 +175,7 @@ export default function Contact() {
                     target="_blank" rel="noopener noreferrer"
                     className="underline-sweep"
                     data-cursor="highlight"
+                    data-cursor-color="#F8F5F0"
                     style={{ fontFamily: 'var(--font-mono),"JetBrains Mono",monospace', fontSize: 12, color: 'rgba(248,245,240,0.6)', textDecoration: 'none', transition: 'color 0.25s ease', display: 'inline-block', width: 'fit-content' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-inverse)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(248,245,240,0.6)' }}
@@ -169,7 +188,7 @@ export default function Contact() {
           </div>
 
           {/* Right Column: Contact Form */}
-          <div className="lg:col-span-7" data-extra>
+          <div className="lg:col-span-7" data-form>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
               {status === 'success' ? (
                 <div style={{ padding: '40px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -281,28 +300,18 @@ export default function Contact() {
                     disabled={status === 'loading'}
                     className="t-label"
                     data-cursor="highlight"
+                    data-cursor-color="#F8F5F0"
                     style={{
                       background: 'none',
                       border: '1px solid var(--accent)',
                       color: 'var(--accent)',
                       padding: '16px 32px',
                       cursor: 'none',
-                      transition: 'background-color 0.3s, color 0.3s',
                       width: 'fit-content',
                       marginTop: 12,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 12,
-                    }}
-                    onMouseEnter={e => {
-                      const button = e.currentTarget as HTMLButtonElement
-                      button.style.backgroundColor = 'var(--accent)'
-                      button.style.color = '#111111'
-                    }}
-                    onMouseLeave={e => {
-                      const button = e.currentTarget as HTMLButtonElement
-                      button.style.backgroundColor = 'transparent'
-                      button.style.color = 'var(--accent)'
                     }}
                   >
                     {status === 'loading' ? 'SENDING...' : 'SEND MESSAGE'}

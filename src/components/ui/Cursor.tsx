@@ -161,6 +161,8 @@ export default function Cursor() {
         ctx.lineCap     = 'round'
         ctx.lineJoin    = 'round'
         ctx.strokeStyle = stroke
+        ctx.shadowBlur  = isDark ? 28 : 10
+        ctx.shadowColor = isDark ? 'rgba(255,130,20,0.9)' : 'rgba(30,20,10,0.50)'
 
         for (let i = 1; i < pts.length - 1; i++) {
           const t  = i / (pts.length - 1)  // 0 = tail end, 1 = cursor tip
@@ -182,6 +184,7 @@ export default function Cursor() {
         }
 
         ctx.globalAlpha = 1  // always reset so it doesn't leak
+        ctx.shadowBlur  = 0  // always reset so it doesn't leak into next draw
       }
 
       /* ── Step 7: Live-update highlight bounds (handles dynamic element resize) ── */
@@ -248,8 +251,10 @@ export default function Cursor() {
       ctx.save()
       ctx.beginPath()
       ctx.arc(dot.x, dot.y, DOT_R, 0, Math.PI * 2)
-      ctx.fillStyle = stroke
+      ctx.fillStyle   = stroke
       ctx.globalAlpha = 0.92
+      ctx.shadowBlur  = isDark ? 28 : 10
+      ctx.shadowColor = isDark ? 'rgba(255,130,20,0.9)' : 'rgba(30,20,10,0.50)'
       ctx.fill()
       ctx.restore()
 
