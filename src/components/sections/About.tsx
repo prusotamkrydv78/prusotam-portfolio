@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
+import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
 import { person, projects, stats } from '@/lib/data'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -13,7 +13,7 @@ const bioLines = [
   'actually work.',
 ]
 
-const currentlyBuilding = projects.map((p) => p.title)
+const builtProjects = projects.map((p) => p.title)
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -125,15 +125,30 @@ export default function About() {
       id="about"
       style={{ background: 'var(--surface-1)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' }}
     >
+      <style>{`
+        .about-grid {
+          display: grid;
+          grid-template-columns: repeat(12, 1fr);
+          column-gap: clamp(16px, 2vw, 24px);
+          align-items: start;
+        }
+        .about-left  { grid-column: 1 / 6; }
+        .about-right { grid-column: 7 / 13; }
+        @media (max-width: 768px) {
+          .about-grid { grid-template-columns: 1fr; row-gap: 56px; }
+          .about-left, .about-right { grid-column: auto; }
+        }
+      `}</style>
+
       <div className="container">
         <p className="t-label section-label" style={{ color: 'var(--text-secondary)', marginBottom: 48 }}>
-          [ABOUT]
+          ABOUT
         </p>
 
-        <div className="grid-12" style={{ alignItems: 'start' }}>
+        <div className="about-grid">
 
           {/* ── Left col 1–5 ── */}
-          <div style={{ gridColumn: '1 / 6' }}>
+          <div className="about-left">
 
             {/* Bio headline */}
             <div style={{ marginBottom: 32 }}>
@@ -194,7 +209,7 @@ export default function About() {
           </div>
 
           {/* ── Right col 7–12 ── */}
-          <div ref={rightRef} style={{ gridColumn: '7 / 13' }}>
+          <div ref={rightRef} className="about-right">
 
             {/* Stats grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 32 }}>
@@ -237,10 +252,10 @@ export default function About() {
               className="t-label"
               style={{ color: 'var(--text-secondary)', marginBottom: 12 }}
             >
-              CURRENTLY BUILDING
+              THINGS I&apos;VE BUILT
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {currentlyBuilding.map((name) => (
+              {builtProjects.map((name) => (
                 <span
                   key={name}
                   className="tech-pill t-label"

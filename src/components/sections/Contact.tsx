@@ -10,7 +10,7 @@ export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null)
   const [copied, setCopied] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [formState, setFormState] = useState({ name: '', email: '', message: '' })
+  const [formState, setFormState] = useState({ name: '', email: '', message: '', company: '' })
 
   useEffect(() => {
     if (!sectionRef.current) return
@@ -200,7 +200,7 @@ export default function Contact() {
                     type="button"
                     onClick={() => {
                       setStatus('idle')
-                      setFormState({ name: '', email: '', message: '' })
+                      setFormState({ name: '', email: '', message: '', company: '' })
                     }}
                     className="t-label underline-sweep"
                     style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'none', width: 'fit-content', padding: 0 }}
@@ -210,6 +210,18 @@ export default function Contact() {
                 </div>
               ) : (
                 <>
+                  {/* Honeypot — hidden from humans, bots fill it and get silently dropped */}
+                  <input
+                    type="text"
+                    name="company"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    value={formState.company}
+                    onChange={e => setFormState(prev => ({ ...prev, company: e.target.value }))}
+                    style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+                  />
+
                   <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <label htmlFor="form-name" className="t-label" style={{ color: 'rgba(248,245,240,0.4)', fontSize: 10 }}>01 / WHAT IS YOUR NAME?</label>
                     <input

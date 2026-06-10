@@ -44,7 +44,7 @@ function HoverLink({ heading, subheading, href, index }: HoverLinkItem & { index
         paddingTop:     40,
         paddingBottom:  40,
         textDecoration: 'none',
-        cursor:         'pointer',
+        cursor:         'none',
       }}
     >
       <div>

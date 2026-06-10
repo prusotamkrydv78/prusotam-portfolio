@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { gsap, ScrollTrigger, EASE_OUT, DUR_MID } from '@/lib/animations'
+import { gsap, ScrollTrigger, EASE_OUT } from '@/lib/animations'
 
 gsap.registerPlugin(ScrollTrigger)
 

@@ -72,7 +72,7 @@ const PROJECTS = [
     cat: 'Finance',
     tags: 'React · Node.js',
     img: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=400&q=80',
-    github: 'https://github.com/prusotamkrydv78',
+    github: 'https://github.com/prusotamkrydv78', // TODO: replace with the real Expense Tracker repo URL
   },
   {
     id: 7,
@@ -83,13 +83,36 @@ const PROJECTS = [
     cat: 'Platform',
     tags: 'Next.js · MongoDB',
     img: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80',
-    github: 'https://github.com/prusotamkrydv78',
+    github: 'https://github.com/prusotamkrydv78', // TODO: replace with the real Real Estate App repo URL
   },
 ]
 
 const N      = PROJECTS.length
 const CARD_W = 260
 const CARD_H = 360
+
+/* ── Branded placeholder tiles ─────────────────────────────────
+   On-brand amber-on-dark patterns + a soft accent glow, one variant
+   per project (keyed by id). No external image dependency. Swap in
+   real screenshots later by restoring an <img src={project.img}/>. */
+const TILE_PATTERNS: { backgroundImage: string; backgroundSize: string }[] = [
+  { backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,77,0,0.10) 0 1.5px, transparent 1.5px 13px)', backgroundSize: 'auto' },
+  { backgroundImage: 'radial-gradient(rgba(255,77,0,0.16) 1.2px, transparent 1.6px)', backgroundSize: '18px 18px' },
+  { backgroundImage: 'linear-gradient(rgba(255,77,0,0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,77,0,0.10) 1px, transparent 1px)', backgroundSize: '22px 22px' },
+  { backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,77,0,0.09) 0 1px, transparent 1px 11px)', backgroundSize: 'auto' },
+  { backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,77,0,0.07) 0 1px, transparent 1px 12px), repeating-linear-gradient(-45deg, rgba(255,77,0,0.07) 0 1px, transparent 1px 12px)', backgroundSize: 'auto' },
+  { backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,77,0,0.09) 0 1px, transparent 1px 13px)', backgroundSize: 'auto' },
+  { backgroundImage: 'repeating-radial-gradient(circle at 70% 30%, rgba(255,77,0,0.10) 0 1px, transparent 1px 16px)', backgroundSize: 'auto' },
+]
+const GLOW_POS: React.CSSProperties[] = [
+  { top: -50, right: -40 },
+  { bottom: -50, left: -40 },
+  { top: -50, left: -40 },
+  { bottom: -50, right: -40 },
+  { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' },
+  { top: -50, left: '50%', marginLeft: -120 },
+  { bottom: -50, left: '50%', marginLeft: -120 },
+]
 
 /* ── Project card ─────────────────────────────────────────── */
 function ProjectCard({
@@ -100,6 +123,7 @@ function ProjectCard({
   onHoverChange?: (h: boolean) => void
 }) {
   const [hovered, setHovered] = useState(false)
+  const tileVariant = (project.id - 1) % TILE_PATTERNS.length
 
   const handleEnter = () => { setHovered(true);  onHoverChange?.(true)  }
   const handleLeave = () => { setHovered(false); onHoverChange?.(false) }
@@ -126,20 +150,53 @@ function ProjectCard({
           boxShadow:     hovered ? '0 20px 60px rgba(0,0,0,0.4)' : 'none',
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={project.img}
-          alt={project.title}
-          style={{
-            position:   'absolute',
-            inset:       0,
-            width:       '100%',
-            height:      '100%',
-            objectFit:   'cover',
-            filter:      hovered ? 'brightness(1.0) grayscale(0%)' : 'grayscale(15%) brightness(0.8)',
-            transition:  'filter 0.35s ease',
-          }}
-        />
+        {/* Branded placeholder tile — amber-on-dark pattern + accent glow + ghost index */}
+        <div style={{ position: 'absolute', inset: 0, background: '#0d0d0d', overflow: 'hidden' }} aria-hidden="true">
+          {/* pattern layer */}
+          <div
+            style={{
+              position:        'absolute',
+              inset:            0,
+              backgroundImage:  TILE_PATTERNS[tileVariant].backgroundImage,
+              backgroundSize:   TILE_PATTERNS[tileVariant].backgroundSize,
+              opacity:          hovered ? 0.7 : 0.42,
+              transition:      'opacity 0.35s ease',
+            }}
+          />
+          {/* accent glow — position varies per project */}
+          <div
+            style={{
+              position:     'absolute',
+              width:         240,
+              height:        240,
+              borderRadius: '50%',
+              background:   'radial-gradient(circle, rgba(255,77,0,0.42) 0%, transparent 70%)',
+              filter:       'blur(28px)',
+              opacity:       hovered ? 1 : 0.55,
+              transition:   'opacity 0.35s ease',
+              ...GLOW_POS[tileVariant],
+            }}
+          />
+          {/* large ghosted project index */}
+          <span
+            style={{
+              position:       'absolute',
+              top:            '42%',
+              left:           '50%',
+              transform:      'translate(-50%,-50%)',
+              fontFamily:     'var(--font-clash), Syne, sans-serif',
+              fontWeight:      800,
+              fontSize:        130,
+              lineHeight:      1,
+              letterSpacing:  '-0.04em',
+              color:           hovered ? 'rgba(255,77,0,0.22)' : 'rgba(248,245,240,0.07)',
+              transition:     'color 0.35s ease',
+              userSelect:     'none',
+            }}
+          >
+            {project.index}
+          </span>
+        </div>
         <div
           style={{
             position:   'absolute',
@@ -278,7 +335,7 @@ export default function Work() {
       })
     }
 
-    /* ── Seed: all cards at bottom-right, visible in viewport when trigger fires ── */
+    /* ── Seed: cards stacked lower-right, hidden — they fan in on approach ── */
     const W0 = el.offsetWidth
     const H0 = el.offsetHeight
     itemRefs.current.forEach(item => {
@@ -290,30 +347,26 @@ export default function Work() {
       })
     })
 
-    /* ── Entry: fires when section is ~80% into viewport (nearly filling screen) ── */
-    let entryDone   = false
-    let entryKilled = false
-    const ENTRY_SEC = (N - 1) * 0.07 + 1.1 + 0.15   // last card lands + buffer
-
-    const entryST = ScrollTrigger.create({
+    /* ── Fan-in: plays once as the section approaches, BEFORE the pin starts.
+       It animates toward getCardProps(0) — the exact state the pinned scrub
+       begins at — so the handoff below is seamless (no jump). ── */
+    const fanIn = ScrollTrigger.create({
       trigger: el,
-      start:   'top 18%',    // section ~82% visible — user can clearly see it
+      start:   'top 72%',
       once:    true,
       onEnter: () => {
         itemRefs.current.forEach((item, i) => {
           if (!item) return
-          gsap.to(item, {
-            ...getCardProps(0, i),
-            duration: 1.1,
-            ease:     'expo.out',
-            delay:    i * 0.07,
-          })
+          gsap.to(item, { ...getCardProps(0, i), duration: 0.9, ease: 'expo.out', delay: i * 0.06 })
         })
-        gsap.delayedCall(ENTRY_SEC, () => { entryDone = true })
       },
     })
 
-    /* ── Scrub: kicks in after entry is done ── */
+    /* ── Pinned scrub: the single source of truth for card positions.
+       On its first frame it kills any in-flight fan-in tween and takes over.
+       Since progress 0 == the fan-in target, there's no stick and no snap —
+       cards track the scroll from the moment the section pins. ── */
+    let tookOver = false
     const st = ScrollTrigger.create({
       trigger: el,
       pin:     true,
@@ -321,9 +374,8 @@ export default function Work() {
       end:     `+=${N * 700}`,
       scrub:   1.2,
       onUpdate: (self) => {
-        if (!entryDone) return
-        if (!entryKilled) {
-          entryKilled = true
+        if (!tookOver) {
+          tookOver = true
           itemRefs.current.forEach(item => item && gsap.killTweensOf(item))
         }
         update(self.progress)
@@ -331,7 +383,7 @@ export default function Work() {
     })
 
     const onResize = () => {
-      if (entryDone) update(progressTracker.current)
+      if (tookOver) update(progressTracker.current)
       ScrollTrigger.refresh()
     }
     window.addEventListener('resize', onResize)
@@ -339,20 +391,20 @@ export default function Work() {
     return () => {
       headerCtx.revert()
       st.kill()
-      entryST.kill()
+      fanIn.kill()
       window.removeEventListener('resize', onResize)
     }
   }, [])
 
   return (
     <>
-      {/* ── Pinned 100vh block: title lives here so it stays visible ── */}
+      {/* ── Pinned full-height block: title lives here so it stays visible ── */}
       <section
         id="work"
         ref={sectionRef}
         style={{
           position:   'relative',
-          height:     '100vh',
+          height:     '100svh',
           overflow:   'hidden',
           background: 'var(--white)',
         }}
@@ -368,7 +420,7 @@ export default function Work() {
               className="t-label section-label"
               style={{ color: 'var(--text-secondary)', display: 'block' }}
             >
-              [ [ WORK ] ]
+               WORK 
             </p>
           </div>
 

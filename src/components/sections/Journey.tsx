@@ -27,9 +27,9 @@ const JOURNEY_LINKS: HoverLinkItem[] = [
   },
   {
     heading:    'Computer Science',
-    subheading: '[Year] · [Degree / College Name] — CS / IT foundation',
+    subheading: 'Self-taught foundation — data structures, algorithms, and web architecture',
     imgSrc:     'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
-    href:       '#',
+    href:       '#work',
   },
 ]
 

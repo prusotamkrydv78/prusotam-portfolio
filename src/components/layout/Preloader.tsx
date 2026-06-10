@@ -5,6 +5,10 @@ import { gsap } from 'gsap'
 import { triggerHeroReveal } from '@/components/sections/Hero'
 import Lenis from 'lenis'
 
+/* Number of vertical cream strips that form the loading screen and break apart on exit.
+   Width/position are derived from this, so any count tiles seamlessly. */
+const STRIP_COUNT = 8
+
 export default function Preloader() {
   const overlayRef   = useRef<HTMLDivElement>(null)
   const contentRef   = useRef<HTMLDivElement>(null)
@@ -18,8 +22,31 @@ export default function Preloader() {
     const overlay = overlayRef.current
     if (!overlay) return
 
-    /* Hide custom cursor while loading */
     const cursorCanvas = document.querySelector('canvas') as HTMLCanvasElement | null
+
+    /* ── Skip path: only for users who prefer reduced motion ──
+       Hide the overlay immediately, restore page state, and reveal the hero as
+       soon as it has registered its entrance (retry across frames until ready).
+       Everyone else always sees the ~3s intro on every visit. */
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) {
+      overlay.style.display = 'none'
+      document.body.style.overflow = ''
+      document.body.style.cursor = 'none'
+      ;(window as unknown as { lenis?: Lenis }).lenis?.start()
+      if (cursorCanvas) cursorCanvas.style.display = 'block'
+
+      let tries = 0
+      let rafId = 0
+      const fire = () => {
+        if (triggerHeroReveal()) return        // hero ready → revealed, stop
+        if (++tries < 90) rafId = requestAnimationFrame(fire)
+      }
+      rafId = requestAnimationFrame(fire)
+      return () => cancelAnimationFrame(rafId)
+    }
+
+    /* Hide custom cursor while loading */
     if (cursorCanvas) cursorCanvas.style.display = 'none'
     document.body.style.cursor = 'default'
 
@@ -106,16 +133,16 @@ export default function Preloader() {
       ref={overlayRef}
       style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden' }}
     >
-      {/* ─── 8 dark strips — collectively form the black background ─── */}
-      {[0,1,2,3,4,5,6,7].map(i => (
+      {/* ─── Cream strips — collectively form the loading screen ─── */}
+      {Array.from({ length: STRIP_COUNT }, (_, i) => (
         <div
           key={i}
           ref={el => { if (el) stripsRef.current[i] = el }}
           style={{
             position: 'absolute',
             top:      0,
-            left:     `${i * 12.5}%`,
-            width:    'calc(12.5% + 1px)',
+            left:     `${i * (100 / STRIP_COUNT)}%`,
+            width:    `calc(${100 / STRIP_COUNT}% + 1px)`,
             height:   '100vh',
             background: 'var(--white)',
           }}
@@ -200,7 +227,7 @@ export default function Preloader() {
               fontSize:      10,
               letterSpacing: '0.25em',
               textTransform: 'uppercase' as const,
-              color:         'rgba(59,130,246,0.8)',
+              color:         'rgba(255,77,0,0.8)',
             }}>
               LOADING
             </span>
@@ -224,10 +251,10 @@ export default function Preloader() {
             </span>
 
             {/* Inner progress bar */}
-            <div style={{ width: '80%', height: 1, background: 'rgba(59,130,246,0.2)', position: 'relative' }}>
+            <div style={{ width: '80%', height: 1, background: 'rgba(255,77,0,0.2)', position: 'relative' }}>
               <div
                 ref={innerBarRef}
-                style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '0%', background: '#3B82F6' }}
+                style={{ position: 'absolute', top: 0, left: 0, height: '100%', width: '0%', background: '#FF4D00' }}
               />
             </div>
           </div>

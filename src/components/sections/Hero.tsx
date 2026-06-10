@@ -18,7 +18,12 @@ const TECH_BASE = [
 const TECH_LOOP = [...TECH_BASE, ...TECH_BASE, ...TECH_BASE, ...TECH_BASE]
 
 let _revealFn: (() => void) | null = null
-export function triggerHeroReveal() { _revealFn?.() }
+let _heroRevealed = false
+/* Returns true once the Hero has registered its reveal fn (so the caller can stop retrying). */
+export function triggerHeroReveal(): boolean {
+  if (_revealFn) { _revealFn(); return true }
+  return false
+}
 
 const splitChars = (text: string) =>
   text.split('').map((char, i) => (
@@ -107,6 +112,8 @@ export default function Hero() {
     let scrollST:    ScrollTrigger   | null = null
 
     const reveal = () => {
+      if (_heroRevealed) return   /* guard: only ever run the entrance once */
+      _heroRevealed = true
       const tl = gsap.timeline({
         onComplete() {
           if (arrowChar) {

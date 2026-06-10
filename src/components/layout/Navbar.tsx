@@ -87,31 +87,63 @@ export default function Navbar() {
     return () => io.disconnect()
   }, [])
 
-  /* ── dark/light section theme ── */
+  /* ── dark/light section theme ──
+     Section bounds are measured once (and on resize / layout change) rather than
+     on every scroll event, and the scroll work is coalesced to one rAF per frame. */
   useEffect(() => {
-    const check = () => {
-      const y = window.scrollY
+    let heroH = 0, procTop = Infinity, procH = 0, proofTop = Infinity, proofH = 0, contactTop = Infinity
+
+    const measure = () => {
       const hero    = document.getElementById('hero')
       const process = document.getElementById('process')
       const proof   = document.getElementById('proof')
       const contact = document.getElementById('contact')
-      const inHero    = hero    ? y < hero.offsetHeight - 64 : false
-      const inProcess = process ? y+64 >= process.offsetTop && y+64 < process.offsetTop+process.offsetHeight : false
-      const inProof   = proof   ? y+64 >= proof.offsetTop   && y+64 < proof.offsetTop+proof.offsetHeight     : false
-      const inContact = contact ? y+64 >= contact.offsetTop : false
+      heroH      = hero    ? hero.offsetHeight    : 0
+      procTop    = process ? process.offsetTop    : Infinity
+      procH      = process ? process.offsetHeight : 0
+      proofTop   = proof   ? proof.offsetTop      : Infinity
+      proofH     = proof   ? proof.offsetHeight   : 0
+      contactTop = contact ? contact.offsetTop    : Infinity
+    }
+
+    const apply = () => {
+      const y = window.scrollY
+      const inHero    = y < heroH - 64
+      const inProcess = y + 64 >= procTop  && y + 64 < procTop  + procH
+      const inProof   = y + 64 >= proofTop && y + 64 < proofTop + proofH
+      const inContact = y + 64 >= contactTop
       setTheme(inHero || inProcess || inProof || inContact ? 'dark' : 'light')
       isHeroRef.current = inHero
       setIsHero(inHero)
     }
-    window.addEventListener('scroll', check, { passive: true })
-    check()
-    return () => window.removeEventListener('scroll', check)
+
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      requestAnimationFrame(() => { apply(); ticking = false })
+    }
+    const onResize = () => { measure(); apply() }
+
+    measure()
+    apply()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+
+    /* Pinned sections, image loads and font swaps shift offsets — re-measure on layout change */
+    const ro = new ResizeObserver(onResize)
+    ro.observe(document.body)
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      ro.disconnect()
+    }
   }, [])
 
   /* ── transition navbar colors on theme change ── */
   useEffect(() => {
     if (isOpenRef.current) return
-    const isDark = theme === 'dark'
     const targetBg     = isHero ? 'transparent' : 'rgba(17,17,17,0.97)'
     const targetBorder = isHero ? 'none' : '1px solid rgba(255,255,255,0.06)'
     const targetFg     = CLR_LIGHT   /* always white — bg is always dark or transparent */
@@ -136,7 +168,7 @@ export default function Navbar() {
     if (line1Ref.current)  tl.to(line1Ref.current,  { backgroundColor: targetFg,             duration: 0.25, ease: 'none' }, at)
     if (line2Ref.current)  tl.to(line2Ref.current,  { backgroundColor: targetFg,             duration: 0.25, ease: 'none' }, at)
     if (closeLblRef.current) tl.to(closeLblRef.current, { color: targetFg,                   duration: 0.25, ease: 'none' }, at)
-  }, [theme])
+  }, [])
 
   /* ── close ── */
   const closeMenu = useCallback(() => {

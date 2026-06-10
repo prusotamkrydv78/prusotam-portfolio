@@ -26,7 +26,7 @@ export const projects = [
     tags: ['TypeScript', 'C#'],
     description: 'Link-in-bio platform. TypeScript frontend + ASP.NET Core C# WebAPI. Live preview while editing.',
     github: 'https://github.com/prusotamkrydv78/LinkMe',
-    live: null as string | null,
+    live: null as string | null, // TODO: add LinkMe's live deployment URL (it's counted as a live project in Proof)
     panel: 'network' as PanelType,
   },
   {
