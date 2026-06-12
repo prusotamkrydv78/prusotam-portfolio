@@ -28,19 +28,6 @@ const QUOTES = [
   },
 ]
 
-const TICKER_ITEMS = [
-  'Consistent committer',
-  'MERN + .NET breadth',
-  'Real-time systems',
-  'TypeScript-first',
-  'Production deployed',
-  'Mobile + Web',
-  '391+ contributions',
-  '72 public repos',
-  'Self-taught, production-ready',
-]
-const TICKER_LOOP = [...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS, ...TICKER_ITEMS]
-
 const NUM_STYLE = {
   fontFamily: 'var(--font-display), Syne, sans-serif',
   fontWeight: 700,
@@ -394,20 +381,6 @@ export default function Proof() {
             </p>
           </div>
 
-        </div>
-      </div>
-
-      {/* Full-width ticker strip */}
-      <div style={{ overflow: 'hidden', height: 48, background: 'var(--surface-dark)', display: 'flex', alignItems: 'center' }}>
-        <div className="animate-ticker" style={{ animationDuration: '35s', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
-          {TICKER_LOOP.map((item, i) => (
-            <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '0 24px' }}>
-              <span style={{ color: 'var(--accent)', fontSize: 12, lineHeight: 1, fontFamily: 'var(--font-mono), monospace' }}>★</span>
-              <span style={{ fontFamily: 'var(--font-mono), "JetBrains Mono", monospace', fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(248,245,240,0.7)' }}>
-                {item}
-              </span>
-            </span>
-          ))}
         </div>
       </div>
 
