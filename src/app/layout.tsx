@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Syne, JetBrains_Mono, Plus_Jakarta_Sans } from 'next/font/google'
+import { Syne, JetBrains_Mono, Plus_Jakarta_Sans, Instrument_Serif } from 'next/font/google'
 import '@/styles/globals.css'
 import ClientLayout from '@/components/providers/ClientLayout'
 import Navbar from '@/components/layout/Navbar'
@@ -19,8 +19,16 @@ import Preloader from '@/components/layout/Preloader'
 */
 const clash = Syne({
   subsets: ['latin'],
-  weight: ['600', '700'],
+  weight: ['600', '700', '800'],
   variable: '--font-clash',
+})
+
+/* Editorial serif accent — italic kicker lines in the Dark Luxe redesign */
+const serif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 })
 
 const cabinet = Plus_Jakarta_Sans({
@@ -56,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${clash.variable} ${cabinet.variable} ${mono.variable}`}
+      className={`${clash.variable} ${cabinet.variable} ${mono.variable} ${serif.variable}`}
     >
       <body>
         <Preloader />

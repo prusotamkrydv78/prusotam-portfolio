@@ -24,12 +24,12 @@ const MARQUEE = [
 const REPEATS = 4
 const MARQUEE_SEQ = Array.from({ length: REPEATS }).flatMap(() => MARQUEE)
 
-const MUTED = 'rgba(248,245,240,0.5)'
+const MUTED = 'rgba(246,243,237,0.5)'
 
 const META: React.CSSProperties = {
   fontFamily: 'var(--font-mono),"JetBrains Mono",monospace',
   fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
-  color: 'rgba(248,245,240,0.3)',
+  color: 'rgba(246,243,237,0.3)',
 }
 
 export default function Footer() {
@@ -98,7 +98,7 @@ export default function Footer() {
     fontSize: 15, color: MUTED, textDecoration: 'none',
     transition: 'color 0.25s ease', cursor: 'none',
   }
-  const onEnter = (e: React.MouseEvent) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-inverse)' }
+  const onEnter = (e: React.MouseEvent) => { (e.currentTarget as HTMLElement).style.color = 'var(--g-room-ink)' }
   const onLeave = (e: React.MouseEvent) => { (e.currentTarget as HTMLElement).style.color = MUTED }
 
   return (
@@ -116,32 +116,32 @@ export default function Footer() {
         }
         .footer-aurora {
           background: radial-gradient(circle at 50% 50%,
-            rgba(255,77,0,0.20) 0%, rgba(255,120,40,0.07) 42%, transparent 70%);
+            rgba(201,119,78,0.20) 0%, rgba(201,119,78,0.07) 42%, transparent 70%);
           animation: footer-breathe 8s ease-in-out infinite alternate;
         }
         .footer-bg-grid {
           background-size: 60px 60px;
           background-image:
-            linear-gradient(to right,  rgba(248,245,240,0.04) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(248,245,240,0.04) 1px, transparent 1px);
+            linear-gradient(to right,  rgba(246,243,237,0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(246,243,237,0.04) 1px, transparent 1px);
           -webkit-mask-image: linear-gradient(to bottom, transparent, #000 26%, #000 74%, transparent);
                   mask-image: linear-gradient(to bottom, transparent, #000 26%, #000 74%, transparent);
         }
         /* Giant background wordmark — stroke + gradient-clip */
         .footer-giant {
-          font-family: var(--font-display), Syne, sans-serif;
-          font-weight: 800; line-height: 0.75; letter-spacing: -0.05em;
+          font-family: var(--font-serif), Georgia, serif;
+          font-weight: 400; line-height: 0.82; letter-spacing: -0.05em;
           font-size: clamp(90px, 24vw, 400px);
           color: transparent;
-          -webkit-text-stroke: 1px rgba(248,245,240,0.07);
-          background: linear-gradient(180deg, rgba(248,245,240,0.11) 0%, transparent 62%);
+          -webkit-text-stroke: 1px rgba(246,243,237,0.07);
+          background: linear-gradient(180deg, rgba(246,243,237,0.11) 0%, transparent 62%);
           -webkit-background-clip: text; background-clip: text;
         }
         /* Metallic glow heading */
         .footer-glow {
-          background: linear-gradient(180deg, var(--text-inverse) 0%, rgba(248,245,240,0.42) 100%);
+          background: linear-gradient(180deg, var(--g-room-ink) 0%, rgba(246,243,237,0.42) 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-          filter: drop-shadow(0 0 22px rgba(248,245,240,0.13));
+          filter: drop-shadow(0 0 22px rgba(246,243,237,0.13));
         }
         .footer-primary-links { display: flex; flex-wrap: wrap; justify-content: center; gap: clamp(20px,4vw,48px); }
         .footer-sitemap { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; margin-top: 26px; }
@@ -149,11 +149,11 @@ export default function Footer() {
         @media (max-width: 640px) { .footer-bottom { justify-content: center; text-align: center; } }
         .footer-backtop {
           width: 46px; height: 46px; border-radius: 50%; cursor: none;
-          border: 1px solid rgba(248,245,240,0.18); background: rgba(248,245,240,0.03);
-          display: grid; place-content: center; color: rgba(248,245,240,0.6);
+          border: 1px solid rgba(246,243,237,0.18); background: rgba(246,243,237,0.03);
+          display: grid; place-content: center; color: rgba(246,243,237,0.6);
           transition: color 0.25s ease, border-color 0.25s ease, background 0.25s ease;
         }
-        .footer-backtop:hover { color: var(--accent); border-color: rgba(255,77,0,0.5); background: rgba(255,77,0,0.08); }
+        .footer-backtop:hover { color: var(--g-accent-warm); border-color: rgba(201,119,78,0.5); background: rgba(201,119,78,0.08); }
         .footer-backtop svg { transition: transform 0.3s ease; }
         .footer-backtop:hover svg { transform: translateY(-3px); }
       `}</style>
@@ -164,12 +164,12 @@ export default function Footer() {
         ref={wrapperRef}
         style={{ position: 'relative', height: '100vh', width: '100%', clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)' }}
       >
-        <footer
+        <footer id="site-footer"
           style={{
             position: 'fixed', bottom: 0, left: 0, width: '100%', height: '100vh',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-            overflow: 'hidden', background: 'var(--black)', color: 'var(--text-inverse)',
-            borderTop: '1px solid var(--line-dark)',
+            overflow: 'hidden', background: 'var(--g-room)', color: 'var(--g-room-ink)',
+            borderTop: '1px solid var(--g-room-line)',
           }}
         >
           {/* Ambient background */}
@@ -194,8 +194,8 @@ export default function Footer() {
                 <textPath ref={curveTextRef} href="#footer-curve" startOffset={0}>
                   {MARQUEE_SEQ.map((item, i) => (
                     <tspan key={i}>
-                      <tspan fill="#FF4D00" style={{ fontSize: '0.62em' }}>{'  ✦  '}</tspan>
-                      <tspan fill="rgba(248,245,240,0.5)">{item.toUpperCase()}</tspan>
+                      <tspan fill="#C9774E" style={{ fontSize: '0.62em' }}>{'  ✦  '}</tspan>
+                      <tspan fill="rgba(246,243,237,0.5)">{item.toUpperCase()}</tspan>
                     </tspan>
                   ))}
                 </textPath>
@@ -205,13 +205,13 @@ export default function Footer() {
 
           {/* ── Center: heading + links ── */}
           <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 var(--gutter)', width: '100%', maxWidth: 1100, margin: '0 auto' }}>
-            <p className="t-label" style={{ color: 'var(--accent)', marginBottom: 22 }}>[ LET&apos;S CONNECT ]</p>
+            <p className="t-label" style={{ color: 'var(--g-accent-warm)', marginBottom: 22 }}>[ LET&apos;S CONNECT ]</p>
 
             <h2
               ref={headingRef}
               className="footer-glow"
               style={{
-                fontFamily: 'var(--font-display),Syne,sans-serif', fontWeight: 800,
+                fontFamily: 'var(--font-serif), Georgia, serif', fontWeight: 400,
                 fontSize: 'clamp(40px,7vw,104px)', lineHeight: 1.0, letterSpacing: '-0.03em',
                 textAlign: 'center', margin: '0 0 14px',
               }}
@@ -220,7 +220,7 @@ export default function Footer() {
             </h2>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'clamp(32px,5vh,56px)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block', flexShrink: 0, animation: 'footer-pulse 2.4s ease-in-out infinite' }} />
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--g-accent-warm)', display: 'inline-block', flexShrink: 0, animation: 'footer-pulse 2.4s ease-in-out infinite' }} />
               <span style={{ fontFamily: 'var(--font-mono),"JetBrains Mono",monospace', fontSize: 12, letterSpacing: '0.04em', color: MUTED }}>
                 Available for work — {person.location}
               </span>
@@ -242,9 +242,9 @@ export default function Footer() {
                 {SITEMAP.map(({ label, href }) => (
                   <a key={href} href={href} onClick={e => { e.preventDefault(); scrollTo(href) }}
                      data-cursor="highlight" data-cursor-color="#F8F5F0" className="underline-sweep"
-                     style={{ ...META, color: 'rgba(248,245,240,0.4)', cursor: 'none', textDecoration: 'none' }}
-                     onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-inverse)')}
-                     onMouseLeave={e => (e.currentTarget.style.color = 'rgba(248,245,240,0.4)')}>
+                     style={{ ...META, color: 'rgba(246,243,237,0.4)', cursor: 'none', textDecoration: 'none' }}
+                     onMouseEnter={e => (e.currentTarget.style.color = 'var(--g-room-ink)')}
+                     onMouseLeave={e => (e.currentTarget.style.color = 'rgba(246,243,237,0.4)')}>
                     {label}
                   </a>
                 ))}
@@ -258,7 +258,7 @@ export default function Footer() {
 
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <span style={META}>Crafted with</span>
-              <span style={{ color: 'var(--accent)', fontSize: 13, display: 'inline-block', animation: 'footer-heartbeat 2s cubic-bezier(0.25,1,0.5,1) infinite' }}>❤</span>
+              <span style={{ color: 'var(--g-accent-warm)', fontSize: 13, display: 'inline-block', animation: 'footer-heartbeat 2s cubic-bezier(0.25,1,0.5,1) infinite' }}>❤</span>
               <span style={META}>by Prusotam</span>
             </span>
 
